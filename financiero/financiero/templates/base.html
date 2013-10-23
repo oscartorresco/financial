@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Inventory</title>
+	<script src="{{ STATIC_URL }}js/jquery.min.js"></script>
+	<script src="{{ STATIC_URL }}js/jquery-ui.js"></script>
+	<script src="{{ STATIC_URL }}js/bootstrap.js"></script>
+	<link href="{{ STATIC_URL }}css/bootstrap.css" rel="stylesheet">
+	<link type="text/css" href="{{ STATIC_URL }}css/bootstrap.min.css" />
+    <link type="text/css" href="{{ STATIC_URL }}css/bootstrap-datetimepicker.min.css" />
+    <link type="text/css" media="screen" href="{{ STATIC_URL }}css/bootstrap-combined.min.css" />
+</head>
+<body>
+	<div class="container">
+		<br></br>
+		<h1 ><a  href="">{% block theme %} {% endblock %}</a></h1>
+		<div class="navbar">
+    		<div class="navbar-inner">
+            	<div class="container">
+             	<ul class="nav">
+                	<li class="active"><a href="#">Home</a></li>
+                	<li><a href="#">Services</a></li>
+                	<li><a href="#">About</a></li>
+                	<li><a href="#">Contact</a></li>
+            	</ul>
+            	</div>
+        	</div>
+    	</div>
+	{% block content %}
+	{% endblock %}
+
+	<script src="{{ STATIC_URL }}js/jquery.min.js"></script>
+	<script src="{{ STATIC_URL }}js/jquery-ui.js"></script>
+	<script src="{{ STATIC_URL }}js/bootstrap-transition.js"></script>
+	<script src="{{ STATIC_URL }}js/bootstrap-alert.js"></script>
+	<script src="{{ STATIC_URL }}js/bootstrap-modal.js"></script>
+	<script src="{{ STATIC_URL }}js/bootstrap-dropdown.js"></script>
+	<script src="{{ STATIC_URL }}js/bootstrap-scrollspy.js"></script>
+	<script src="{{ STATIC_URL }}js/bootstrap-tab.js"></script>
+	<script src="{{ STATIC_URL }}js/bootstrap-tooltip.js"></script>
+	<script src="{{ STATIC_URL }}js/bootstrap-popover.js"></script>
+	<script src="{{ STATIC_URL }}js/bootstrap-button.js"></script>
+	<script src="{{ STATIC_URL }}js/bootstrap-collapse.js"></script>
+	<script src="{{ STATIC_URL }}js/bootstrap-carousel.js"></script>
+	<script src="{{ STATIC_URL }}js/bootstrap-typeahead.js"></script>
+	<script src="{{ STATIC_URL }}js/bootstrap-datepicker.js"></script>
+	<script src="{{ STATIC_URL }}js/bootstrap-datetimepicker.min.js"></script>	
+</body>
+</html>
