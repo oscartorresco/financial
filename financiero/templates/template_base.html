@@ -3,11 +3,13 @@
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>{% block title %}{% endblock %}</title>
+	<title>{% block titulo %}{% endblock %}</title>
 	<link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}bootstrap/css/bootstrap.css">
 	<link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}bootstrap/css/prettify.css">
 	<link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}css/flat-ui.css">
 	<link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}css/erp.css">
+	<link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}js/jquery-1.10.2.min.js">
+	<link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}js/jquery-ui-1.10.3.custom.min.js">	
 	{% block css %}{% endblock %}
 	{% block js %}{% endblock %}
 </head>
@@ -17,15 +19,14 @@
 		<div class="container">	
 			<div class="navbar-collapse collapse navbar-collapse-02">
 				<div class="navbar-brand">
-				{% block name %}{% endblock %}
+				{% block nombre_modulo %}{% endblock %}
 				</div>		
 				<ul class="nav navbar-nav navbar-left">
-					<li class="active"><a href="#">Contabilidad</a></li>
-					<li><a href="#">Logistica</a></li>
-					<li><a href="#">Recursos Humanos</a></li>
+					{% block navegacion %}
+					{% endblock %}
 				</ul>	 
 				<ul class="nav navbar-nav navbar-right">
-					<li><a href="#">Sergio Torrado</a>
+					<li><a href="#">{% block nombre_usuario %}{% endblock %}</a>
 						<ul>
 							<li><a href="">Configuración</a></li>
 							<li><a href="">Cerrar sesión</a></li>
@@ -38,16 +39,13 @@
 </header>
 
 <ul class="sidebar">
-	{% block sidebar %}
-	<li><a href="">IC</a></li>
-	<li>IC</li>
-	<li>IC</li>
+	{% block navegacion_lateral %}
 	{% endblock %}
 </ul>
 
 <div class="container">
 	<div class="well">
-		{% block content %}{% endblock %}
+		{% block contenido %}{% endblock %}
 	</div>
 </div>
 	
