@@ -1,0 +1,14 @@
+<h1>Editar Bodega {{bodega}}</h1>
+<form action="{% url 'editarBodega' bodega.codigo %}" method="POST">
+	{% csrf_token %}
+	<label>Codigo</label>
+	<input type="text" name="codigo" placeholder="Codigo" value="{{bodega.codigo}}" readonly></input type="text">
+	<br>
+	<label>Nombre</label>
+	<input type="text" name="nombre" placeholder="Nombre" value="{{bodega.nombre}}"></input type="text">
+	<br>
+	<label>Direccion</label>
+	<input type="text" name="direccion" placeholder="Direccion" value="{{bodega.direccion}}"></input type="text">
+	<br>
+	<input type="submit" value="Modificar">
+</form>

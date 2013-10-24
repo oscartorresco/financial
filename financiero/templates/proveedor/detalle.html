@@ -1,0 +1,26 @@
+<h1>Productos ofrecidos por {{proveedor}}</h1>
+{% if producto %}
+	<h1>Producto {{ producto }}</h1>
+	<form action="#" method="POST">
+		{% csrf_token %}
+		<label>Codigo:</label>
+		<label>{{ producto.codigo }}</label>
+		<br>
+		<label>Descripcion:</label>
+		<label>{{ producto.descrpcion }}</label>
+		<br>
+		<label>Unidad Medida:</label>
+		<label>{{ producto.medida }}</label>
+		<br>
+		<label>Inventario Minimo:</label>
+		<label>{{ producto.inventario_minimo }}</label>
+		<br>
+		<label>Inventario Actual:</label>
+		<label>{{ producto.cantidad }}</label>
+		<br>
+		<label>Bodega:</label>
+		<label>{{ producto.bodega }}</label>
+	</form>
+{% else %}
+	<p>No hay Productos ofrecidos por este proveedor</p>
+{% endif %}

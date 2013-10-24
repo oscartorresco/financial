@@ -1,0 +1,23 @@
+<h1>Bodegas</h1>
+{% if listaBodegas %}
+<a href="{% url 'agregarBodega' %}"><button>Agregar Bodega</button></a>
+	<table>
+		<tr>
+			<th>Codigo</th>
+			<th>Nombre</th>
+			<th>Direccion</th>
+		</tr>
+		{% for bodega in listaBodegas %}
+			<tr>
+				<td>{{ bodega.codigo }}</td>
+				<td>{{ bodega.nombre }}</td>
+				<td>{{ bodega.direccion }}</td>
+				<td><a href="{% url 'editarBodega' bodega.codigo %}">Editar</a></td>
+				<td><a href="{% url 'listaProductoBodega' bodega.codigo %}">Lista de Productos Almacenados</a></td>
+			</tr>
+		{% endfor %}
+	</table>
+{% else %}
+	<p>No hay Bodegas disponibles</p>
+	<a href="{% url 'agregarBodega' %}"><button>Agregar Bodega</button></a>
+{% endif %}
