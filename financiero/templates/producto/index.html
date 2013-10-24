@@ -1,0 +1,30 @@
+<h1>Productos</h1>
+{% if listaProductos %}
+<a href="{% url 'agregarProducto' %}"><button>Agregar Producto</button></a>
+	<table>
+		<tr>
+			<th>Codigo</th>
+			<th>Nombre</th>
+			<th>Descripcion</th>
+			<th>Unidad Medida</th>
+			<th>Inventario Minimo</th>
+			<th>Inventario Actual</th>
+			<th>Bodega</th>
+		</tr>
+		{% for producto in listaProductos %}
+			<tr>
+				<td>{{ producto.codigo }}</td>
+				<td>{{ producto.nombre }}</td>
+				<td>{{ producto.descripcion }}</td>
+				<td>{{ producto.get_medida_display }}</td>
+				<td>{{ producto.inventario_minimo }}</td>
+				<td>{{ producto.cantidad }}</td>
+				<td>{{ producto.bodega }}</td>
+				<td><a href="{% url 'editarProducto' producto.codigo %}">Editar</a></td>
+			</tr>
+		{% endfor %}
+	</table>
+{% else %}
+	<p>No hay Productos disponibles</p>
+	<a href="{% url 'agregarProducto' %}"><button>Agregar Producto</button></a>
+{% endif %}

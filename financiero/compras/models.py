@@ -1,4 +1,5 @@
 from django.db import models
+from inventory.models import Producto
 
 # Create your models here.
 class Compra(models.Model):

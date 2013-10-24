@@ -2,6 +2,7 @@
 from django.shortcuts import render, get_object_or_404, get_list_or_404, redirect
 from django.http import HttpResponse
 from compras.models import Proveedor, Producto_Proveedor, Compra
+from inventory.models import Producto
 
 #Vistas de Compras
 def indexCompras(request):
@@ -34,10 +35,8 @@ def agregarProveedor(request):
 def editarProveedor(request, codigo_proveedor):
 	if request.method == 'POST':
 		prov = get_object_or_404(Proveedor, pk=codigo_proveedor)
-		prov.nombre = request.POST['nombre']
-		prov.direccion = request.POST['direccion']
-		prov.telefono = request.POST['telefono']
-		#Preguntar si esto es posible de otra manera
+		if len(request.POST['nuevaDireccion']) > 0:
+			prov.direccion = request.POST['nuevaDireccion']
 		if request.POST['estado'] == "true":
 			prov.estado = True
 		else:
@@ -45,8 +44,7 @@ def editarProveedor(request, codigo_proveedor):
 		prov.save()
 		return redirect('compras.views.indexProveedor')
 	else:
-		proveedor = get_object_or_404(Proveedor, pk=codigo_proveedor)
-		return render(request, 'proveedor/editar.html', {'proveedor':proveedor})
+		return render(request, 'proveedor/index.html')
 
 def listaProductosProveedor(request, codigo_proveedor):
 	listaAuxiliar = Producto_Proveedor.objects.filter(proveedor = codigo_proveedor)
