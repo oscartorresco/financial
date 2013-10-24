@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% block theme %} Bodegas{% endblock %}
+{% block content %}
+	<table class="table table-striped table-message table-scroll">
+	{% for cellar in bodegas %}
+		<tr>
+			<td>						
+    			{{ cellar.nombre }}
+			</td>
+			<td>						
+    			{{ cellar.direccion }}
+			</td>
+		</tr>
+    {% endfor %}
+	</table>
+{% endblock %}

@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% block theme %} Producto{% endblock %}
+{% block content %}
+	<form method="POST"> {% csrf_token %}
+		<div >
+			<div class="span2 offset2"><label><strong>Nombre:</strong></label></div>
+			<div class="span4"><input type="text" style="width:130%;" required="required" autocomplete="off" name="nombre"></div>
+			<div class="span2 offset2"><label><strong>Descripcion:</strong></label></div>
+			<div class="span4"><textarea type="text" style="width:130%;" required="required" name="descripcion"></textarea></div>
+			<div class="span2 offset2"><label><strong>Medida:</strong></label></div>
+			<div class="span4"><input type="text" style="width:130%;" required="required" autocomplete="off" name="medida"></div>
+			<div class="span2 offset2"><label><strong>Inventario minimo:</strong></label></div>
+			<div class="span4"><textarea type="text" style="width:130%;" required="required" name="minimo"></textarea></div>
+			
+			<div class="span2 offset2"><label><strong>Cantidad:</strong></label></div>
+			<div class="span4"><input type="text" style="width:130%;" required="required" autocomplete="off" name="cantidad"></div>
+			<div class="span2 offset2"><label><strong>Bodega:</strong></label></div>
+			<div class="span4">
+				<select name="bodega">
+					{% for cellar in bodegas %}
+					    <option value="{{cellar.pk}}">{{cellar.nombre}}</option>
+				    {% endfor %}
+				</select>
+			</div> 
+			<div class="span2 offset2"><label><strong>Imagen:</strong></label></div>
+			<div class="span4"><input type="file" style="width:200%;" required="required" autocomplete="off" name="imagen"></div>
+			<div class="span6">
+				<button class="btn pull-right" style="margin-right: 10px;margin-bottom: 10px;"type="submit">Crear</button>
+			</div>
+		</div>		
+	</form>
+{% endblock %}

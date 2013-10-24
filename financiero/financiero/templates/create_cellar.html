@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% block theme %} Bodega{% endblock %}
+{% block content %}
+	<form method="POST"> {% csrf_token %}
+		<div >
+			<div class="span2 offset2"><label><strong>Nombre:</strong></label></div>
+			<div class="span4"><input type="text" style="width:100%;" required="required" autocomplete="off" name="nombre"></div>
+			<div class="span2 offset2"><label><strong>Direccion:</strong></label></div>
+			<div class="span4"><textarea type="text" style="width:100%;" required="required" name="direccion"></textarea></div>
+			<div class="span6">
+				<button class="btn pull-right" style="margin-right: 10px;margin-bottom: 10px;"type="submit">Crear</button>
+			</div>
+		</div>		
+	</form>
+{% endblock %}
