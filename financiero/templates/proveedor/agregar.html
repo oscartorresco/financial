@@ -1,0 +1,13 @@
+<h1>Agregar Proceedor</h1>
+<form action="{% url 'agregarProveedor' %}" method="POST">
+	{% csrf_token %}
+	<input type="text" name="codigo" placeholder="Codigo"></input type="text">
+	<br>
+	<input type="text" name="nombre" placeholder="Nombre"></input type="text">
+	<br>
+	<input type="text" name="direccion" placeholder="Direccion"></input type="text">
+	<br>
+	<input type="text" name="telefono" placeholder="Telefono"></input type="text">
+	<br>
+	<input type="submit" value="Agregar">
+</form>

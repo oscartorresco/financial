@@ -1,0 +1,27 @@
+<h1>Compras</h1>
+{% if listaCompras %}
+	<table>
+		<tr>
+			<th>Codigo</th>
+			<th>Nombre</th>
+			<th>Descripcion</th>
+			<th>Unidad Medida</th>
+			<th>Inventario Minimo</th>
+			<th>Inventario Actual</th>
+			<th>Bodega</th>
+		</tr>
+		{% for compras in listaCompras %}
+			<tr>
+				<td>{{ compras.codigo }}</td>
+				<td>{{ compras.nombre }}</td>
+				<td>{{ compras.descrpcion }}</td>
+				<td>{{ compras.medida }}</td>
+				<td>{{ compras.inventario_minimo }}</td>
+				<td>{{ compras.cantidad }}</td>
+				<td>{{ compras.bodega }}</td>
+			</tr>
+		{% endfor %}
+	</table>
+{% else %}
+	<p>No hay compras disponibles</p>
+{% endif %}

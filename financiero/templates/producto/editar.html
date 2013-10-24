@@ -1,0 +1,28 @@
+{% if producto %}
+	<h1>Producto Codigo {{ producto.codigo }}</h1>
+	<form action="#" method="POST">
+		{% csrf_token %}
+		<label>Nombre</label>
+		<input type="text" value="{{ producto.nombre }}"></input type="text">
+		<br>
+		<label>Descripcion</label>
+		<input type="text" value="{{ producto.descripcion }}"></input type="text">
+		<br>
+		<label>Unidad Medida</label>
+		<select>
+			#Preguntar lo de los choices
+			<option value="{{seleccion.medida}}">{{ seleccion.get_medida_display }}</option>
+		</select>
+		<br>
+		<label>Inventario Minimo</label>
+		<input type="text" value="{{ producto.inventario_minimo }}"></input type="text">
+		<br>
+		<label>Inventario Actual</label>
+		<input type="text" name="codigo" placeholder="Codigo" value="{{ producto.cantidad }}" readonly></input type="text">
+		<br>
+		<label>Bodega</label>
+		<input type="text" value ="{{ producto.bodega }}"></input type="text">
+	</form>
+{% else %}
+	<p>No hay Productos disponibles</p>
+{% endif %}

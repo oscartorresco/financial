@@ -1,0 +1,21 @@
+<h1>Lista de productos en la Bodega {{ bodega }}</h1>
+<table>
+	<tr>
+		<th>Codigo</th>
+		<th>Nombre</th>
+		<th>Descripcion</th>
+		<th>Unidad Medida</th>
+		<th>Inventario Minimo</th>
+		<th>Inventario Actual</th>
+	</tr>
+	{% for producto in listaProductos %}
+		<tr>
+			<td>{{ producto.codigo }}</td>
+			<td>{{ producto.nombre }}</td>
+			<td>{{ producto.descripcion }}</td>
+			<td>{{ producto.get_medida_display }}</td>
+			<td>{{ producto.inventario_minimo }}</td>
+			<td>{{ producto.cantidad }}</td>
+		</tr>
+	{% endfor %}
+</table>

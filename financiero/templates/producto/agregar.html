@@ -1,0 +1,32 @@
+<h1>Agregar Producto</h1>
+<form action="{% url 'agregarProducto' %}" method="POST">
+	{% csrf_token %}
+	<input type="text" name="codigo" placeholder="Codigo"></input type="text">
+	<br>
+	<input type="text" name="nombre" placeholder="Nombre"></input type="text">
+	<br>
+	<input type="text" name="descripcion" placeholder="Descripcion"></input type="text">
+	<br>
+	<select name="medida">
+		<option>Seleccion el tipo de medicion del producto</option>
+		<option value="Unidad">Unidad</option>
+		<option value="Decena">Decenas</option>
+    	<option value="Docena">Docenas</option>
+    	<option value="Kg">Kilogramo</option>
+    	<option value="g">Gramo</option>
+    	<option value="m">Metro</option>
+	</select>
+	<br>
+	<input type="text" name="inv_minimo" placeholder="Inventario Minimo"></input type="text">
+	<br>
+	<input type="text" name="cantidad" placeholder="Cantidad"></input type="text">
+	<br>
+	<select name="bodega">
+		<option>Seleccione la bodega donde se va a almacenar el producto</option>
+		{% for bodega in listaBodegas %}
+			<option value="{{bodega.codigo}}">{{bodega}}</option>
+		{% endfor %}
+	</select>
+	<br>
+	<input type="submit" value="Agregar">
+</form>

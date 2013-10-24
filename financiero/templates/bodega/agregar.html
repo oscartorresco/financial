@@ -1,0 +1,11 @@
+<h1>Agregar Bodega</h1>
+<form action="{% url 'agregarBodega' %}" method="POST">
+	{% csrf_token %}
+	<input type="text" name="codigo" placeholder="Codigo"></input type="text">
+	<br>
+	<input type="text" name="nombre" placeholder="Nombre"></input type="text">
+	<br>
+	<input type="text" name="direccion" placeholder="Direccion"></input type="text">
+	<br>
+	<input type="submit" value="Agregar">
+</form>
