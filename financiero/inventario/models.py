@@ -18,8 +18,8 @@ class  Producto(models.Model):
 	inventario_minimo = models.IntegerField(max_length=30)
 	cantidad = models.IntegerField(max_length=30)
 	fecha_ingreso = models.DateField(auto_now=False)
+	estado = models.BooleanField(null=False)
 	imagen = models.ImageField(upload_to='financial', verbose_name='Imágen')
 	bodega =models.ForeignKey(Bodega)
 	def __unicode__(self):
 		return self.bodega
-
