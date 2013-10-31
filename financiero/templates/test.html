@@ -1,0 +1,69 @@
+{% extends 'template_base.html' %}
+
+{% block nombre_modulo %}
+Recursos Humanos
+{% endblock %}
+
+{% block css %}
+<style type="text/css">
+	.table > tbody > tr > td {
+		border: none;
+	}
+	.table > tbody > tr > th {
+		border: none;
+	}
+</style>
+{% endblock %}
+
+{% block nombre_usuario %}
+Sergio Torrado
+{% endblock %}
+
+{% block contenido %}
+<table class="table">
+	<tr>
+		<th colspan="4"><h1>Lista de empleados</h1></th>
+	</tr>
+	<tr>
+		<td colspan="4">
+			<div class="btn-group">
+				<a href="" class="btn btn-primary btn-sm active">
+					<span class="fui-plus"></span>Agregar empleado
+				</a>
+				<a href="" class="btn btn-primary btn-sm">
+					<span class="fui-search"></span>Buscar
+				</a>
+				<a href="" class="btn btn-primary btn-sm">
+					<span class="fui-open"></span>Eliminar
+				</a>
+				<a href="" class="btn btn-primary btn-sm">
+					<span class="fui-list"></span>Seleccionar todo
+				</a>
+			</div>
+		</td>
+	</tr>
+	<tr>
+		<th></th>
+		<th>Documento de identidad</th>
+		<th>Nombre</th>
+		<th>Tipo de contrato</th>
+	</tr>
+	<tr>
+		<td><input type="checkbox" value="" id="checkbox1" data-toggle="checkbox"></td>
+		<td>1049632387</td>
+		<td>Sergio Torrado</td>
+		<td>Indefinido</td>
+	</tr>
+</table>
+{% endblock %}
+
+{% block navegacion %}
+<li><a href="#">Reclutamiento</a>
+	<ul>
+		<li><a href="#">Bolsa de empleo</a></li>
+		<li><a href="#">Entrevistas</a></li>
+	</ul>
+</li>
+<li  class="active"><a href="#">Personal</a></li>
+<li><a href="#">Reportes</a></li>
+{% endblock %}
