@@ -1,0 +1,156 @@
+{% extends "rh_base.html" %}
+{% block titulo%} Contabilidad {% endblock %}
+{% block css %}
+<style type="text/css">
+        #opcionesAgregar, #panelBuscar, #panelAgregar {
+                display: none;
+        }
+        
+        th{
+        	text-align: center;
+        }
+</style>
+
+<link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}css/jquery-ui-1.10.3.custom.css">
+{% endblock %}
+{% block js %}
+	 <script type="text/javascript" src="{{ STATIC_URL }}js/jquery-ui-1.10.3.custom.js"></script>
+	 <script>
+  $(function() {
+    var availableTags = [{% for puc in cuenta %}"{{puc}}",{% endfor %}""];
+    $( "#tags" ).autocomplete({
+      source: availableTags
+    });
+  });
+  </script>
+{% endblock%}
+{% block contenido %}
+<h1>Transacciones</h1>
+<div id="opcionesLista" class="btn-group">
+        <label  id="agregar" class="btn btn-success btn-sm">
+                <i class="fa fa-plus"></i> Nueva Transaccion
+        </label>
+        <!-- <label  id="buscar" href="" class="btn btn-success btn-sm">
+                <i class="fa fa-search"></i> Buscar
+        </label> -->
+</div>
+
+<div id="opcionesAgregar" class="btn-group">
+        <label  id="cancelar" href="" class="btn btn-success btn-sm">
+                <i class="fa fa-times"></i> Cancelar
+        </label>
+</div>
+
+
+<div id="panelAgregar">
+	<br />
+	
+	
+	<form action="/contabilidad/agregar/" method="post" >
+	{% csrf_token %}
+	<div class="row">
+		<div class="form-group col-lg-6">
+                            <label for="nombre">Cuenta</label>
+                            <input  type="text" min="6" max="6"  id="tags" class="form-control" name="cuenta"  required="" placeholder="Cuenta" autocomplete="off" >
+                        </div>
+                        <div class="form-group col-lg-6">
+                            <label for="documento">Concepto</label>
+                            <input type="text" class="form-control" name="concepto" required="" placeholder="Concepto">
+                        </div>
+	  </div>
+	  
+	  <div class="row">
+		<div class="form-group col-lg-6">
+                            <label for="nombre">Fecha</label>
+                            <input type="date" class="form-control" name="fecha" required="" id="fecha">
+                        </div>
+                        <div class="form-group col-lg-6">
+                            <label for="documento">Valor</label>
+                            <input type="number" class="form-control" name="valor" required="" placeholder="Valor">
+                        </div>
+	  </div>
+	  
+	  <div class="row">
+		<div class="form-group col-lg-6">
+                   <input type="submit" class="btn-primary" value="Almacenar Transaccion" />
+          </div>
+	  </div>
+	  
+	  </form>
+</div>
+<table id="listaTrans" class="table table-striped">
+	<tr>
+		<th style="width: 100px">Id
+		<input type="text" class="input-sm" style="width: 100%" placeholder="Buscar"/>	
+		</th>
+		<th>Cuenta
+		<input type="text" class="input-sm" style="width: 100%" placeholder="Buscar"/>
+		</th>
+		<th>Fecha
+		<input type="date" class="input-sm" style="width: 100%" placeholder="Buscar"/>	
+		</th>
+		<th>Concepto</th>
+		<th>Debito</th>
+		<th>Credito</th>
+	</tr>
+	{% for transaccion in transacciones %}
+		<tr>
+			<td>{{transaccion.id}}</td>
+			<td>{{transaccion.numero_cuenta}}</td>
+			<td>{{transaccion.fecha}}</td>
+			<td>{{transaccion.concepto}}</td>
+			{% if transaccion.numero_cuenta.naturaleza == '0' %}
+			<td>{{transaccion.valor}}</td>
+			<td></td>
+			{% else %}
+			<td></td>
+			<td>{{transaccion.valor}}</td>
+			{% endif %}
+		</tr>
+	{% endfor %}
+	
+</table>
+<script type="text/javascript">
+        $("#agregar").click(function() {
+                $("#opcionesLista").css("display","none");
+                $("#opcionesAgregar").css("display","inline-block");
+                $("#listaTrans").css("display","none");
+                $("#panelAgregar").css("display","block");
+                // $("#buscar").removeClass("active"); 
+                // $("#panelBuscar").css("display","none");
+        });
+
+        $("#cancelar").click(function() {
+                $("#opcionesLista").css("display","inline-block");
+                $("#opcionesAgregar").css("display","none");
+                $("#listaTrans").css("display","table");
+                $("#panelAgregar").css("display","none");
+        });
+
+        // $("#buscar").click(function() {
+                // if($(this).hasClass("active")) {
+                        // $(this).removeClass("active");                        
+                        // $("#panelBuscar").css("display","none");
+                // }else{
+                        // $(this).addClass("active");
+                        // $("#panelBuscar").css("display","block");
+                // }                
+        // });
+
+        // $("#seleccionarTodo").click(function() {
+                // if($(this).hasClass("active")) {
+                        // $(this).removeClass("active");
+                        // $('input[type=checkbox]').attr('checked', false);
+                // }else{
+                        // $(this).addClass("active");
+                        // $('input[type=checkbox]').attr('checked', true);
+                // }                
+        // });
+// 
+        // $("#listaBtn").click(function() {
+                // $(this).addClass("active");
+                // $("#agregar").removeClass("active");
+                // $("#lista").css("display","table");
+        // });
+</script>
+{% endblock %}

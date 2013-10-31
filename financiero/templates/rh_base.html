@@ -1,0 +1,22 @@
+{% extends 'template_base.html' %}
+
+{% block nombre_modulo %}
+Financiero
+{% endblock %}
+
+{% block nombre_usuario %}
+{{ user }}
+{% endblock %}
+
+{% block navegacion %}
+<li class="dropdown"><a href="#" clas="dropdown-toggle" data-toggle="dropdown">Contabilidad</a>
+	<ul class="dropdown-menu">
+		<li><a href="#">Cuentas</a></li>
+		<li><a href="{% url 'contabilidad' %}">Transacciones</a></li>
+		<li><a href="#">Balances</a></li>
+	</ul>
+</li>
+<li><a href="#">Compras</a></li>
+<li><a href="#">Ventas</a></li>
+<li><a href="#">Inventario</a></li>
+{% endblock %}
