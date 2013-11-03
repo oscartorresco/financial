@@ -1,222 +1,271 @@
-{% extends "template_base.html" %}
+{% extends "rh_base.html" %}
 {% block titulo%} Proveedores {% endblock %}
-{% block js %} 
- <script src="{{ STATIC_URL }}js/jquery-1.8.3.min.js"></script>
-<script src="{{ STATIC_URL }}js/bootstrap.min.js"></script>
+{% block css %}
+<style type="text/css">
+#opcionesAgregar, #panelBuscar, #panelAgregar, #panelEditar {
+  display: none;
+}
+th{
+  text-align: center;
+}
+</style>
+<link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}css/jquery-ui-1.10.3.custom.css">
+{% endblock %}
+{% block js %}
+<script type="text/javascript">
+$(document).ready(function  () {
+    paginacion();
+});
+</script>
 {% endblock %}
 {% block contenido %}
+<h1>Proveedores</h1>
+{% if mensaje %}
+{% if tipoMensaje = 1 %}
+<div class="alert alert-success alert-success">
+  <button type="button" class="close" data-dismiss="alert">&times;</button>
+{% else %}
+<div class="alert alert-danger alert-danger">
+  <button type="button" class="close" data-dismiss="alert">&times;</button>
+{% endif %}
+  <strong>{{mensaje}}</strong>
+</div>
+{% endif %}
+<div id="mensaje" class="btn-group">
+  <label id="agregar" class="btn btn-success btn-sm">
+    <i class="fa fa-plus"></i> Nuevo Proveedor
+  </label>
+</div>
+<div id="opcionesAgregar" class="btn-group">
+  <label  id="cancelar" href="" class="btn btn-success btn-sm">
+    <i class="fa fa-times"></i> Cancelar
+  </label>
+</div>
+<div id="panelAgregar">
+  <br />
+  <form action="{% url 'agregarProveedor' %}" method="post" >
+    {% csrf_token %}
+    <div class="row">
+      <div class="form-group col-lg-6">
+        <label for="nombre">Codigo</label>
+        <input  type="text" class="form-control" name="codigo"  required="" placeholder="Codigo">
+      </div>
+      <div class="form-group col-lg-6">
+        <label for="documento">Nombre</label>
+        <input type="text" class="form-control" name="nombre" required="" placeholder="Nombre">
+      </div>
+    </div>
+    <div class="row">
+      <div class="form-group col-lg-6">
+        <label for="nombre">Direccion</label>
+        <input type="text" class="form-control" name="direccion" required="" id="direccion" placeholder="Direccion">
+      </div>
+      <div class="form-group col-lg-6">
+        <label for="documento">Telefono</label>
+        <input type="number" class="form-control" name="telefono" required="" placeholder="Telefono">
+      </div>
+    </div>
+    <div class="row">
+      <div class="form-group col-lg-6">
+        <input type="submit" class="btn-success btn-sm" value="Guardar Proveedor" />
+      </div>
+    </div>
+  </form>
+</div>
 
-	<h1>Proveedores</h1>
-	
-	<div class="panel-group" id="accordion">
-			  <div class="panel panel-primary">
-			    <div class="panel-heading">
-			      <h4 class="panel-title">
-			        <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion" href="#collapseOne">
-			          Agregar Proveedor
-			        </a>
-			      </h4>
-			    </div>
-			    <div id="collapseOne" class="panel-collapse collapse in">
-			      <div class="panel-body">
-			<form class="form-horizontal" method="post" action="{%url 'agregarProveedor'%}">
-				{% csrf_token %}
-		  	<legend align="center">Favor Ingrese los datos para el nuevo proveedor</legend>
-		  		<div class="control-group">
-		  			<div class="row">
-		  				<div class="col-md-2"></div>
-		  				<div class="col-md-2">
-		  					<label>Código:</label>
-		  				</div>
-		  				<div class="col-md-6">
-		  					<input type="text" name="codigo" class="form-control" required=""  >
-		  				</div>
-					</div>
-					
-					<div class="row">
-						<div class="col-md-2"></div>
-		  				<div class="col-md-2">
-		  					<label>Nombres:</label>
-		  				</div>
-		  				<div class="col-md-6">
-		  					<input type="text" name="nombre" class="form-control" required=""  >
-		  				</div>
-					</div>
-					
-					<div class="row">
-						<div class="col-md-2"></div>
-		  				<div class="col-md-2">
-		  					<label>Dirección:</label>
-		  				</div>
-		  				<div class="col-md-6">
-		  					<input type="text" name="direccion" class="form-control" required=""  >
-		  				</div>
-					</div>
-					
-					<div class="row">
-						<div class="col-md-2"></div>
-		  				<div class="col-md-2">
-		  					<label>Telefono:</label>
-		  				</div>
-		  				<div class="col-md-6">
-		  					<input type="text" name="telefono" class="form-control" required=""  >
-		  				</div>
-					</div>
-					
-					<div class="row">
-						<div class="col-md-2"></div>
-		  				<div class="col-md-4">
-		  					<input type="submit" class="btn btn-primary" value="Agregar" />
-		  				</div>
-					</div>
-		  		</div>
+<table id="listaProveedores" class="table table-striped">
+    <tr>
+      <th style="width: 100px">Codigo
+        <input type="text" class="input-sm" style="width: 100%" placeholder="Buscar" id= "busquedaCodigo" name="busquedaCodigo" onkeyup="paginacion()"/>
+      </th>
+      <th>Nombre
+        <input type="text" class="input-sm" style="width: 100%" placeholder="Buscar" id= "busquedaNombre" name="busquedaNombre" onkeyup="paginacion()"/>
+      </th>
+      <th>Direccion
+        <input type="text" class="input-sm" style="width: 100%" placeholder="Buscar" id= "busquedaDireccion" name="busquedaDireccion" onkeyup="paginacion()"/>
+      </th>
+      <th>Telefono
+        <input type="text" class="input-sm" style="width: 100%" placeholder="Buscar" id= "busquedaTelefono" name="busquedaTelefono" onkeyup="paginacion()"/>
+      </th>
+    </tr>
+    <tbody class="tabla" id="tabla" value="{{cont}}">
+      {% for proveedor in listaProveedores %}
+        <tr class="datoLista " style"cursor: pointer;" >
+          <td id=""></td>
+          <td id=""></td>
+          <td id=""></td>
+          <td id=""></td>
+        </tr>
+      {% endfor %}
+    </tbody>
+</table>
+<center>
+  <ul class="pagination" value="{{pag}}" id="paginacion">
+    <li class="paginacionLi" value="-1"><a style="cursor: pointer;">&laquo;</a></li>
+    <li class="paginacionLi" value="-2"><a style="cursor: pointer;">&raquo;</a></li>
+  </ul>
+</center>
+<script type="text/javascript">
+$("#agregar").click(function() {
+  $("#opcionesLista").css("display","none");
+  $("#opcionesAgregar").css("display","inline-block");
+  $("#listaProveedores").css("display","none");
+  $("#paginacion").css("display","none");
+  $("#panelAgregar").css("display","block");
+});
 
-		  	</form>
-			       
-			      </div>
-			    </div>
-			  </div>
-			  <div class="panel panel-primary">
-			    <div class="panel-heading">
-			      <h4 class="panel-title">
-			        <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion" href="#collapseTwo">
-			          Lista de Proveedores
-			        </a>
-			      </h4>
-			    </div>
-			    <div id="collapseTwo" class="panel-collapse collapse">
-			      <div class="panel-body">
-		<table class="table table-striped">
-			<tr>
-				<th>Codigo</th>
-				<th>Nombre</th>
-				<th>Direccion</th>
-				<th>Telefono</th>
-				<th>Opciones</th>
-			</tr>
-			
-			<tr>
-				<td>
-					  <input type="text" placeholder="Buscar..." name="busquedaCodigo" class="input-sm"	>
-				</td>
-				<td>
-					  <input type="text" placeholder="Buscar..." name="busquedaNombre" class="input-sm"	>
-				</td>
-				<td>
-					  <input type="text" placeholder="Buscar..." name="busquedaDireccion" class="input-sm"	>
-				</td>
-				<td>
-					  <input type="text" placeholder="Buscar..." name="busquedaTelefono"class="input-sm"	>
-				</td>
-				<td>
-					<input type="submit" class="btn btn-primary" value="Buscar" />
-				</td>
-			</tr>
-			
-			{% for proveedor in listaProveedores %}
-				{% if proveedor.estado %}
-				<tr class="success">
-				{% else %}
-				<tr class="danger">
-				{% endif %}
-					<td>{{ proveedor.codigo }}</td>
-					<td>{{ proveedor.nombre }}</td>
-					<td>{{ proveedor.direccion }}</td>
-					<td>{{ proveedor.telefono }}</td>
-					<td><a data-toggle="modal" href="#{{ proveedor.codigo }}" class="glyphicon glyphicon-pencil"></a>
-					<a href="{% url 'agregarProductoProveedor' proveedor.codigo %}" class="glyphicon glyphicon-plus-sign"></a>
-					<a href="{% url 'listaProductosProveedor' proveedor.codigo %}" class="glyphicon glyphicon-eye-close"></a></td>
-					
-					<div class="modal fade" id="{{ proveedor.codigo }}" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-						    <div class="modal-dialog">
-						      <div class="modal-content">
-						        <div class="modal-header">
-						          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-						          <h4 class="modal-title">Editar Proveedor {{proveedor}}</h4>
-						        </div>
-						        <form class="form-vertical" action="{% url 'editarProveedor' proveedor.codigo %}" method="POST">
-						        	{% csrf_token %}
-						        <div class="modal-body">
-						          	
-						          	<div class="control-group">
-		  			<div class="row">
-		  				<div class="col-md-2"></div>
-		  				<div class="col-md-2">
-		  					<label>Código:</label>
-		  				</div>
-		  				<div class="col-md-6">
-		  					{{proveedor.codigo}}
-		  				</div>
-					</div>
-					
-					<div class="row">
-						<div class="col-md-2"></div>
-		  				<div class="col-md-2">
-		  					<label>Nombres:</label>
-		  				</div>
-		  				<div class="col-md-6">
-		  					{{proveedor.nombre}}
-		  				</div>
-					</div>
-					
-					<div class="row">
-						<div class="col-md-2"></div>
-		  				<div class="col-md-2">
-		  					<label>Dirección:</label>
-		  				</div>
-		  				<div class="col-md-6">
-		  					<input type="text" placeholder="{{proveedor.direccion}}" class="input-sm" name="nuevaDireccion"/>
-		  				</div>
-					</div>
-					
-					<div class="row">
-						<div class="col-md-2"></div>
-		  				<div class="col-md-2">
-		  					<label>Telefono:</label>
-		  				</div>
-		  				<div class="col-md-6">
-		  					{{proveedor.telefono}}
-		  				</div>
-					</div>
+$("#cancelar").click(function() {
+  $("#opcionesLista").css("display","inline-block");
+  $("#opcionesAgregar").css("display","none");
+  $("#listaProveedores").css("display","table");
+  $("#paginacion").css("display","");
+  $("#panelAgregar").css("display","none");
+});
+$('.paginacionLi').click(paginacion);
+function paginacion(){
+  var pag;
+  try{
+    pag = $(this).val(); 
+  }catch(error){
+    pag = 0;
+  }
+  var aux = $('.pagination').val();
+  if  (aux == ""){
+    aux = 1;
+  }else
+    aux = parseInt(aux);
+  if(pag == '-1'){
+    pag = aux-1;
+    if(pag == 0)
+      pag = 1;
+  }else{
+    if(pag == '-2'){
+      pag = (aux+1);
+      if(pag > {{cont}})
+        pag = {{cont}};
+    }else{
+      pag = aux;
+    }
+  }
+  busquedaCodigo = document.getElementById('busquedaCodigo').value;
+  busquedaNombre = document.getElementById('busquedaNombre').value;
+  busquedaDireccion = document.getElementById('busquedaDireccion').value;
+  busquedaTelefono = document.getElementById('busquedaTelefono').value;
+  if((busquedaCodigo.length > 0) || (busquedaNombre.length > 0) || (busquedaDireccion.length > 0) || (busquedaTelefono.length > 0)){
+    var data = {'pag':pag, 'busquedaCodigo':busquedaCodigo,'busquedaNombre':busquedaNombre,'busquedaDireccion':busquedaDireccion,'busquedaTelefono':busquedaTelefono};
+    var url = "{% url 'buscarProveedor' %}";
+    var type = 'get';
+    llamarAjax(data, url, type);
+  } else {
+    $('.pagination').val(pag);
+    var data = {'pag':pag};
+    var url = "{% url 'indexProveedor' %}";
+    var type = 'get';
+    llamarAjax(data, url, type);
+  }
+}
 
-					<div class="row">
-						<div class="col-md-2"></div>
-		  				<div class="col-md-2">
-		  					<label>Estado:</label>
-		  				</div>
-		  				<div class="col-md-6">
-		  						<select name="estado" class="form-control">
-									{% if proveedor.estado %}
-										<option value="true">Activo</option>
-										<option value="false">Inactivo</option>
-									{% else %}
-										<option value="false">Inactivo</option>
-										<option value="true">Activo</option>
-									{% endif %}
-								</select>
-		  				</div>
-					</div>
-			          	
-						          	
-						          	
-						        </div>
-						        <div class="modal-footer">
-						          <button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button>
-						          <input type="submit" class="btn btn-primary" value="Guardar" />
-						        </div>
-						        </form>
-						      </div><!-- /.modal-content -->
-						    </div><!-- /.modal-dialog -->
-						  </div><!-- /.modal -->
-					
-				</tr>
-			{% endfor %}
-		</table>
-					
-					
-			      </div>
-			    </div>
-			  </div>
-		</div>
-	
+function llamarAjax(info, url, type){
+  $.ajax({
+    data: info,
+    url: url,
+    type: type,
+    success: function (data){
+      if (data.length > 0){
+        llenarTabla(data);
+      } else {
+        $("#tabla").find('tr').each(function(index){
+          $(this).removeClass("activo");
+          $(this).removeClass("danger");
+          if(index > data.length){
+            $(this).attr("id","");
+            $(this).find('td').each(function(index2){
+              switch(index2){
+                case 0:
+                  $(this).attr("id","");
+                  $(this).text("");
+                  break;
+                case 1:
+                  $(this).attr("id","");
+                  $(this).text("");
+                  break;
+                case 2:
+                  $(this).attr("id","");
+                  $(this).text("");
+                  break;
+                case 3:
+                  $(this).attr("id","");
+                  $(this).text("");
+                  break;
+              }
+            });
+          } else {
+            $(this).addClass("danger");
+            $(this).find('td').each(function(index2){
+              if (index2 == 1){
+                $(this).attr("id","");
+                $(this).text("No hay Resultados");
+              } else {
+                $(this).attr("id","");
+                $(this).text("");
+              }
+            });
+          }
+        });
+      }
+    }
+  });
+}
+
+function llenarTabla (data) {
+  if(data.mensaje == null){
+    $("#listaProveedores").css("display","table");
+    //$("#mensaje").css("display","none");
+    $("#tabla").find('tr').each(function(index){
+      $(this).removeClass("activo");
+      $(this).removeClass("danger");
+      if(index < data.length){
+        $(this).addClass("activo");
+        if(!data[index].fields.estado)
+          $(this).addClass("danger");
+        $(this).attr("id",data[index].pk);
+        $(this).find('td').each(function(index2){
+          switch(index2){
+            case 0:
+              $(this).attr("id",data[index].pk);
+              $(this).text(data[index].pk);
+              break;
+            case 1:
+              $(this).attr("id",data[index].fields.nombre);
+              $(this).text(data[index].fields.nombre);
+              break;
+            case 2:
+              $(this).attr("id",data[index].fields.direccion);
+              $(this).text(data[index].fields.direccion);
+              break;
+            case 3:
+              $(this).attr("id",data[index].fields.telefono);
+              $(this).text(data[index].fields.telefono);
+              break;
+          }
+        });
+      } else {
+        $(this).removeClass("danger");
+        $(this).find('td').each(function(index2){
+          $(this).attr("id","");
+          $(this).text("");
+        });
+      }
+    });
+  }else{
+    $("#listaProveedores").css("display","none");
+    $("#mensaje").css("display","inline-block");
+    $("#mensaje").html("<h1><p>"+data.mensaje+"</p></h1>");
+  }
+}
+
+function editarProveedor (argument) {
+  // body...
+}
+</script>
 {% endblock %}
