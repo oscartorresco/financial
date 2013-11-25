@@ -16,7 +16,12 @@ Financiero
 		<li><a href="#">Balances</a></li>
 	</ul>
 </li>
-<li><a href="#">Compras</a></li>
+<li class="dropdown"><a href="#" clas="dropdown-toggle" data-toggle="dropdown">Compras</a>
+	<ul class="dropdown-menu">
+		<li><a href="{% url 'indexCompras' %}">Compras</a></li>
+		<li><a href="{% url 'indexProveedor' %}">Proveedor</a></li>
+	</ul>
+</li>
 <li><a href="#">Ventas</a></li>
 <li><a href="#">Inventario</a></li>
 {% endblock %}

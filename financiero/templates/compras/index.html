@@ -1,27 +1,616 @@
+{% extends "rh_base.html" %}
+{% block titulo%} Compras {% endblock %}
+{% block css %}
+<link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}css/datepicker.css"> 
+<style type="text/css">
+#opcionesAgregar, #panelBuscar, #panelAgregar, #panelConsultar, #listar {
+  display: none;
+}
+th{
+  text-align: center;
+}
+.error{
+  background-color: #f2dede;
+  border-color: #eed3d7;
+  color: #b94a48;
+  padding: 6px 12px;
+  border-radius: 4px;
+  border-style:solid;
+  display: none;
+  font-weight: bold;
+  margin-left: 4px;
+  margin-top: 35px;
+  position: absolute;
+  z-index: 1;
+}
+.error:before{
+  content: '';
+  border-color: #eed3d7;
+  border-bottom: 10px solid #f2dede;
+  border-right: 10px solid transparent;
+  border-left: 10px solid transparent;
+  top: -8px;
+  position: absolute;
+  left: 30px;
+}
+</style>
+{% endblock %}
+{% block js %}
+<script type="text/javascript" src="{{ STATIC_URL }}js/bootstrap-datepicker.js"></script>
+<script type="text/javascript">
+$(document).ready(function  () {
+    paginacion();
+    $('#busquedaFecha').datepicker();
+});
+
+function validacionFormulario () {
+  var valorProveedor = $("#proveedor").val();
+  if(valorProveedor == -1){
+    $("#errorProveedor").fadeIn("slow");
+    $("#proveedor").focus();
+    return false;
+  } else {
+    var valorProducto = $("#productos_0").val();
+    if(valorProducto == -1){
+      $("#errorProducto_0").fadeIn("slow");
+      $("#productos_0").focus();
+      return false;
+    }
+    var valorCantidad = $("#cantidad_0").val();
+    if(parseInt(valorCantidad) <= 0){
+      $("#cantidad_0").focus();
+      $("#errorCantidad_0").fadeIn("slow");
+        return false;
+    }
+    for (var i = 1; i <= numSelect; i++) {
+      valorProducto = $("#productos_"+i).val();
+      var cantidadPro = $("#cantidad_"+ i).val();
+      if((valorProducto == -1 && !(isNaN(parseInt(cantidadPro)))) || (valorProducto != -1 && parseInt(cantidadPro) == 0) ) {
+        if(valorProducto == -1){
+          $("#errorProducto_"+i).fadeIn("slow");
+          $("#productos_"+i).focus();
+          //console.log("No enviar Menor de cero");
+        } else {
+          $("#errorCantidad_"+i).fadeIn("slow");
+          $("#cantidad_"+i).focus();
+        }
+        return false;
+      }
+    };
+    return true;
+  }
+}
+function soloNumeros() {
+ if ((event.keyCode < 48) || (event.keyCode > 57)) 
+  event.returnValue = false;
+}
+</script>
+{% endblock %}
+{% block contenido %}
 <h1>Compras</h1>
-{% if listaCompras %}
-	<table>
-		<tr>
-			<th>Codigo</th>
-			<th>Nombre</th>
-			<th>Descripcion</th>
-			<th>Unidad Medida</th>
-			<th>Inventario Minimo</th>
-			<th>Inventario Actual</th>
-			<th>Bodega</th>
-		</tr>
-		{% for compras in listaCompras %}
-			<tr>
-				<td>{{ compras.codigo }}</td>
-				<td>{{ compras.nombre }}</td>
-				<td>{{ compras.descrpcion }}</td>
-				<td>{{ compras.medida }}</td>
-				<td>{{ compras.inventario_minimo }}</td>
-				<td>{{ compras.cantidad }}</td>
-				<td>{{ compras.bodega }}</td>
-			</tr>
-		{% endfor %}
-	</table>
+{% if mensaje %}
+{% if tipoMensaje = 1 %}
+<div id="mensaje" class="alert alert-success alert-success">
+  <button type="button" class="close" data-dismiss="alert">&times;</button>
 {% else %}
-	<p>No hay compras disponibles</p>
+<div class="alert alert-danger alert-danger">
+  <button type="button" class="close" data-dismiss="alert">&times;</button>
 {% endif %}
+  <strong>{{mensaje}}</strong>
+</div>
+{% endif %}
+<div id="agregarDiv" class="btn-group">
+  <label id="agregar" class="btn btn-success btn-sm">
+    <i class="fa fa-plus"></i> Nueva Compra
+  </label>
+  <label id="buscar" class="btn btn-success btn-sm">
+    <i class="fa fa-search"></i> Buscar Compra
+  </label>
+  <label id="listar" class="btn btn-success btn-sm">
+    <i class="fa fa-table"></i> Listar Compras
+  </label>
+</div>
+<div id="opcionesAgregar" class="btn-group">
+  <label  id="cancelar" class="btn btn-success btn-sm">
+    <i class="fa fa-times"></i> Cancelar
+  </label>
+</div>
+<div id="panelAgregar">
+  <br />
+  <form action="{% url 'agregarCompra' %}" method="post" id="agregarCompra" onsubmit="return validacionFormulario()">
+    {% csrf_token %}
+    <div class="row">
+      <div class="form-group col-lg-6">
+        <label for="proveedor">Proveedor</label>
+        <div id="errorProveedor" class="error"> -Seleccione al proveedor-</div>
+        <select class="form-control" name="proveedor" id="proveedor">
+          <option value="-1">--Seleccione el Proveedor--</option>
+          {% for proveedor in proveedores %}
+          	<option value="{{proveedor.codigo}}">{{proveedor}}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-group col-lg-6">
+        <label for="descripcion">Descripcion</label>
+        <input type="text" class="form-control" required="" placeholder="Descripcion" name="descripcion">
+      </div>
+    </div>
+    <div class="row" id ="camposAgregar">
+      <div class="form-group col-lg-6">
+        <label for="producto">Producto</label>
+        <div id="errorProducto_0" class="error"> -Seleccione el producto-</div>
+        <select class="form-control listaProductos" name="productos_0" id="productos_0" disabled onchange="cargarPrecio(0)">
+          <option value="-1">--Seleccione el Proveedor Primero--</option>
+        </select>
+      </div>
+      <div class="form-group col-lg-2">
+        <label for="unidad">Valor Unidad</label>
+        <label class="form-control" id="valorUnidad_0">0</label>
+        <input type="hidden" name="precio_0" id="vrUnidad_0" value="0"/>
+      </div>
+      <div class="form-group col-lg-2">
+        <label for="cantidad">Cantidad Solicitada</label>
+        <div id="errorCantidad_0" class="error">Debe ser mayor de 0</div>
+        <input type="text" class="form-control" name="cantidad_0" id="cantidad_0" required="" placeholder="Cantidad" onkeyup="actualizarTotal(0); ocultarError()" disabled="" onkeypress="soloNumeros()"/>
+      </div>
+      <div class="form-group col-lg-2">
+        <label for="Valor">Total del producto</label>
+        <label class="form-control" id="valorCompra_0">0</label>
+      </div>
+      <input type="hidden" name="cantidadproductos" id="cantidadproductos" value="1"/>
+    </div>
+    <div class="row">
+      <div class="form-group">
+        <label for="valorTotal" class="col-lg-6 control-label">Valor total de la compra: $<span id="valorTotal">0</span></label>
+      </div>
+    </div>
+    <div class="row">
+      <div class="form-group col-lg-6 btn-group">
+        <input type="submit" class="btn-success btn-sm" value="Guardar Compra" />
+      </div>
+    </div>
+  </form>
+</div>
+<div id="panelConsultar">
+  <br />
+  <div class="row">
+    <div class="form-group col-lg-6">
+      <label for="proveedor">Proveedor</label>
+      <label class="form-control" for="nombreproveedor" id="panelConsultaProveedor">Consultar proveedor</label>
+    </div>
+    <div class="form-group col-lg-6">
+      <label for="descripcion">Descripcion</label>
+      <label for="infoDescripcion" class="form-control" id="panelConsultaDescripcion">Consultar descripcion</label>
+    </div>
+  </div>
+  <div class="row" id ="camposConsultar">
+    <div class="form-group col-lg-6">
+      <label for="producto">Producto</label>
+    </div>
+    <div class="form-group col-lg-2">
+      <label for="unidad">Valor Unidad</label>
+    </div>
+    <div class="form-group col-lg-2">
+      <label for="cantidad">Cantidad Solicitada</label>
+    </div>
+    <div class="form-group col-lg-2">
+      <label for="Valor">Total</label>
+    </div>
+  </div>
+</div>
+<table id="listaCompras" class="table table-striped">
+    <tr id="grupoEtiquetas">
+    	<th style="width: 100px">Codigo
+    	</th>
+    	<th>Descripcion
+    	</th>
+    	<th>Fecha
+    	</th>
+      <th>Proveedor
+      </th>
+    </tr>
+    <tr id="grupoCampos" hidden = "true">
+      <td>
+        <input type="text" class="form-control" style="width: 100%" placeholder="Buscar por Codigo" id= "busquedaCodigo" name="busquedaCodigo" onkeyup="paginacion()" onkeypress="soloNumeros()"/>
+      </td>
+      <td>
+        <input type="text" class="form-control" style="width: 100%" placeholder="Buscar por Descripcion" id= "busquedaDescripcion" name="busquedaDescripcion" onkeyup="paginacion()"/>
+      </td>
+      <td>
+        <input type="text" class="form-control" style="width: 100%; cursor:pointer" placeholder="Buscar por Fecha" id="busquedaFecha" name="busquedaFecha" readonly="" data-date-weekStart="1" data-date="today" data-date-format="yyyy-mm-dd" />
+      </td>
+      <td>
+        <input type="text" class="form-control" style="width: 100%" placeholder="Buscar por Proveedor" id= "busquedaProveedor" name="busquedaProveedor" onkeyup="paginacion()"/>
+      </td>
+    </tr>
+    <tbody class="tabla" id="tabla" value="{{cont}}">
+      {% for compras in listaCompras %}
+        <tr class="datoLista " style"cursor: pointer;" >
+          <td id=""></td>
+          <td id=""></td>
+          <td id=""></td>
+          <td id=""></td>
+        </tr>
+      {% endfor %}
+    </tbody>
+</table>
+<center>
+  <ul class="pagination" value="{{pag}}" id="paginacion">
+    <li class="paginacionLi" value="-1"><a style="cursor: pointer;">&laquo;</a></li>
+    <li class="paginacionLi" value="-2"><a style="cursor: pointer;">&raquo;</a></li>
+  </ul>
+</center>
+
+<script type="text/javascript">
+var numSelect = 0;
+var idDivConsulta = 0;
+$("#agregar").click(function() {
+  $("#opcionesAgregar").css("display","inline-block");
+  $("#listaCompras").css("display","none");
+  $("#paginacion").css("display","none");
+  $("#panelAgregar").css("display","block");
+  $("#panelConsultar").css("display","none");
+  $("#mensaje").css("display","none");
+  $("#agregarDiv").css("display","none");
+  $("#agregarCompra")[0].reset();
+});
+
+$("#cancelar").click(function() {
+  $("#opcionesAgregar").css("display","none");
+  $("#listaCompras").css("display","table");
+  $("#paginacion").css("display","");
+  $("#panelAgregar").css("display","none");
+  $("#panelConsultar").css("display","none");
+  $("#mensaje").css("display","none");
+  $("#agregarDiv").css("display","block");
+});
+
+$("#buscar").click(buscar);
+function buscar () {
+  $("#buscar").css("display","none");
+  $("#listar").css("display","block");
+  $("#grupoEtiquetas").attr('hidden',"");
+  $("#grupoCampos").removeAttr('hidden');
+}
+
+$("#listar").click(listar);
+function listar () {
+  $("#listar").css("display","none");
+  $("#buscar").css("display","block");
+  $("#grupoCampos").attr('hidden',"");
+  $("#grupoEtiquetas").removeAttr('hidden');
+  $("#busquedaCodigo").val("");
+  $("#busquedaDescripcion").val("");
+  $("#busquedaFecha").val("");
+  $("#busquedaProveedor").val("");
+  paginacion();
+}
+
+$("#proveedor").change(ocultarError);
+$("#productos_0").change(ocultarError);
+function ocultarError () {
+  $(".error").css("display","none");
+}
+
+$('.paginacionLi').click(paginacion);
+function paginacion(){
+  var pag;
+  try{
+    pag = $(this).val();
+  }catch(error){
+    pag = 0;
+  }
+  var aux = $('.pagination').val();
+  if  (aux == ""){
+    aux = 1;
+  }else
+    aux = parseInt(aux);
+  if(pag == '-1'){
+    pag = aux-1;
+    if(pag == 0)
+      pag = 1;
+  }else{
+    if(pag == '-2'){
+      pag = (aux+1);
+      if(pag > {{cont}})
+        pag = {{cont}};
+    }else{
+      pag = aux;
+    }
+  }
+  $('.pagination').val(pag);
+  var busquedaCodigo = $("#busquedaCodigo").val();
+  var busquedaDescripcion = $("#busquedaDescripcion").val();
+  var busquedaProveedor = $("#busquedaProveedor").val();
+  var busquedaFecha = $("#busquedaFecha").val();
+  if((busquedaCodigo.length > 0) || (busquedaDescripcion.length > 0) || (busquedaProveedor.length > 0) || (busquedaFecha.length > 0)){
+    var data = {'pag':pag,'busquedaCodigo':busquedaCodigo, 'busquedaDescripcion':busquedaDescripcion, 'busquedaProveedor':busquedaProveedor, 'busquedaFecha':busquedaFecha};
+    var url = "{% url 'buscarCompra' %}";
+    var type = 'get';
+  }else{
+    var data = {'pag':pag};
+    var url = "{% url 'indexCompras' %}";
+    var type = 'get';
+  }
+  $.ajax({
+    data: data,
+    url: url,
+    type: type,
+    success: function (data) {
+      if (data.length > 0){
+        llenarTabla(data);
+      } else {
+        $("#tabla").find('tr').each(function(index){
+          $(this).addClass("warning");
+          if(index == 0){
+            $(this).find('td').each(function (index2) {
+              if(index2 == 1){
+                $(this).css("cursor","default");
+                $(this).html("<div class='alert-warning'><strong>No hay Resultados</strong></div>");
+              } else {
+                $(this).attr("id","");
+                $(this).text("");
+              }
+            });
+          } else {
+            $(this).css("display","none");
+          }
+        });
+      }
+    }
+  });
+}
+
+$("select#proveedor").change(cargarProductos);
+function cargarProductos () {
+  var productosLista = document.getElementById('productos_0');
+  for (var count = productosLista.options.length-1; count >-1; count--){
+    productosLista.options[count] = null;
+  }
+  //Cuando se cambia de proveedor, se deben borrar los combos que tienen relacion con el anterior proveedor y el contador de combos agregados se vuelve 0
+  if (numSelect > 0){
+    for (var i = 1; i <= numSelect; i++) {
+      $("#vrUnidad_" + i).remove();
+      $("#productos_" + i).remove();
+      $("#valorCompra_" + i).remove();
+      $("#cantidad_" + i).remove();
+      $("#valorUnidad_" + i).remove();
+      $("#"+i).remove();
+    }
+    numSelect = 0;
+  }
+  document.getElementById("cantidad_0").disabled = false;
+  //Se tienen que colocar las tres etiquetas principales con valor 0
+  document.getElementById("valorCompra_0").innerHTML = 0;
+  document.getElementById("cantidad_0").innerHTML = 0;
+  document.getElementById("valorUnidad_0").innerHTML = 0;
+  document.getElementById("vrUnidad_0").value = 0;
+  productosLista.options[0] = new Option('Cargando...', '-1', false, false);
+  productosLista.disabled = true;
+  var proveedoresLista = document.getElementById('proveedor');
+  var proveedorId = proveedoresLista.options[proveedoresLista.selectedIndex].value;
+  if (proveedorId > 0) {
+    $.ajax({
+      data: {'proveedor':proveedorId},
+      url: "{% url 'listaProductos' %}",
+      method: 'get',
+      success: function(data){
+        var option = new Option("--Seleccione el producto--", "-1", false, false);
+        productosLista.options[0] = option;
+        for (i=0; i<data.length; i++) {
+          //var option = new Option(texto, value, false, false);
+          var option = new Option(data[i].fields.nombre, data[i].pk, false, false);
+          productosLista.options[i+1] = option;
+        }
+        productosLista.disabled = false;
+      }
+    });
+  } else {
+    productosLista.options[0] = new Option('--Seleccione el Proveedor Primero--', '-1', false, false);
+    productosLista.disabled = true;
+    document.getElementById("cantidad_0").disabled = true;
+  }
+}
+
+function cargarPrecio (id) {
+  if(id <= numSelect){
+    var idProducto = "productos_" + id;
+    var productosLista = document.getElementById(idProducto);
+    var productoId = productosLista.options[productosLista.selectedIndex].value;
+    var proveedoresLista = document.getElementById('proveedor');
+    var proveedorId = proveedoresLista.options[proveedoresLista.selectedIndex].value;
+    console.log(id);
+    if (productoId > 0) {
+      $.ajax({
+        data: {'producto':productoId,'proveedor':proveedorId},
+        url: "{% url 'buscarPrecio' %}",
+        method: 'get',
+        success: function(data){
+          document.getElementById("valorUnidad_" + id).innerHTML= data[0].fields.precio_oferta;
+          document.getElementById("vrUnidad_" + id).value= data[0].fields.precio_oferta;
+          $("#cantidad_"+id).attr("required","true");
+          actualizarTotal(id);
+        }
+      });
+    } else {
+      document.getElementById("valorUnidad_" + id).innerHTML= 0;
+      document.getElementById("valorCompra_" + id).innerHTML = 0;
+      document.getElementById("cantidad_" + id).value="";
+      document.getElementById("vrUnidad_" + id).value= "";
+      $("#cantidad_"+id).removeAttr('required');
+      actualizarTotal(id);
+    }
+  }
+}
+
+function actualizarTotal (id) {
+  var unidad = document.getElementById("valorUnidad_"+id).innerHTML;
+  if($("#cantidad_"+id).val().length > 0){
+    var cantidad = parseInt($("#cantidad_"+id).val());
+  } else{
+    var cantidad = 0;
+  }
+  if(cantidad > 0){
+    document.getElementById("valorCompra_"+id).innerHTML = unidad*cantidad;
+  } else {
+    document.getElementById("valorCompra_"+id).innerHTML = 0;
+  }
+  var total = 0;
+  for (var i = 0; i <= numSelect; i++) {
+    total+=parseInt(document.getElementById("valorCompra_"+i).innerHTML);
+  }
+  document.getElementById("valorTotal").innerHTML = total;
+}
+
+$('#busquedaFecha').datepicker().on('changeDate', paginacion);
+
+$('.listaProductos').change(agregarCampos);
+function agregarCampos(numeroSelect){
+  var productosLista = document.getElementById('productos_0');
+  if(productosLista.options.length > 2){
+    var seleccionados = [];
+    var continua = true;
+    //Se verifica que no haya comobos sin ser seleccionados
+    for (var i = 0; i < numSelect + 1; i++) {
+      var idProducto = "productos_" + i;
+      var auxProductos = document.getElementById(idProducto);
+      var auxProductoId = auxProductos.options[auxProductos.selectedIndex].value;
+      seleccionados[i] = auxProductos.options[auxProductos.selectedIndex].value;
+      if(auxProductoId == -1){
+          continua = false;
+      }
+    }
+    if (continua) {
+      //Si no hay combos sin ser seleccionados, se mira si la cantidad de combos creados es menor que la cantidad de opciones de productos para continuar de lo contrario no se deja
+      if(seleccionados.length < productosLista.options.length - 1){
+        numSelect++;
+        //Campo oculto que enviaremos para saber cuantos productos se van a agregar
+        $("#cantidadproductos").val(numSelect);
+        var id = "productos_" + numSelect;
+        campo = '<div id="' + numSelect +'">' +
+        '<div class="form-group col-lg-6">' +
+          '<div id="errorProducto_'+ numSelect +'" class="error"> -Seleccione el producto-</div>' +
+          '<select class="form-control" id="'+ id +'" name="productos_' + numSelect + '" onchange="agregarCampos(' + numSelect +'); cargarPrecio(' + numSelect + '); ocultarError()"> ' +
+          '</select>' +
+        '</div>' +
+        '<div class="form-group col-lg-2">' + 
+          '<label class="form-control" name="precio_' + numSelect + '" id="valorUnidad_'+ numSelect +'" >0</label>' +
+          '<input type="hidden" name="precio_' + numSelect + '" id="vrUnidad_' + numSelect +'" value="0"/>' +
+        '</div>' +
+        '<div class="form-group col-lg-2">' +
+          '<div id="errorCantidad_' + numSelect +'" class="error">Debe ser mayor de 0</div>' + 
+          '<input type="text" class="form-control" name="cantidad_' + numSelect + '" id="cantidad_'+ numSelect +'" placeholder="Cantidad" onkeypress="soloNumeros()" onkeyup="actualizarTotal(' + numSelect +'); ocultarError()" />' +
+        '</div>' +
+        '<div class="form-group col-lg-2">' +
+          '<label class="form-control" id="valorCompra_'+ numSelect +'">0</label>' +
+        '</div>' + 
+        '</div>';
+        $("#camposAgregar").append(campo);
+        var nuevaLista = document.getElementById(id);
+        for (i = 0; i < productosLista.length; i++) {
+          var valor = productosLista.options[i].value;
+          var text = productosLista.options[i].text;
+          var option = new Option(text, valor, false, false);
+          nuevaLista.options[i] = option;
+        }
+      }
+    }
+  }
+}
+
+function llenarTabla (data) {
+  if(data.mensaje == null){
+    $("#listaCompras").css("display","table");
+    $("#tabla").find('tr').each(function(index){
+      $(this).removeClass("warning");
+      if(index < data.length){
+        $(this).css("display","table-row");
+        $(this).attr("id",data[index].pk);
+        $(this).find('td').each(function(index2){
+          $(this).css("cursor","pointer");
+          switch(index2){
+            case 0:
+              $(this).attr("id",data[index].pk);
+              $(this).text(data[index].pk);
+              break;
+            case 1:
+              $(this).attr("id",data[index].fields.descripcion);
+              $(this).text(data[index].fields.descripcion);
+              break;
+            case 2:
+              $(this).attr("id",data[index].fields.fecha);
+              $(this).text(data[index].fields.fecha);
+              break;
+            case 3:
+              $(this).attr("id",data[index].pk);
+              $(this).text(data[index].fields.proveedor);
+              break;
+          }
+        });
+      } else {
+        $(this).css("display","none");
+        $(this).find('td').each(function(index2){
+          $(this).attr("id","");
+          $(this).text("");
+        });
+      }
+    });
+  }else{
+    $("#mensaje").css("display","inline-block");
+    $("#mensaje").html("<h1><p>"+data.mensaje+"</p></h1>");
+  }
+}
+
+$(document).ready(function(){
+    $('#tabla tr').click(function(){
+      var codigoCompra = $($(this).children("td")[0]).text();
+      if(codigoCompra.length > 0){
+        $("#opcionesAgregar").css("display","inline-block");
+        $("#listaCompras").css("display","none");
+        $("#paginacion").css("display","none");
+        $("#panelAgregar").css("display","none");
+        $("#panelConsultar").css("display","block");
+        $("#mensaje").css("display","none");
+        $("#agregarDiv").css("display","none");
+        $("#agregarCompra")[0].reset();
+        $("#sindatos").css("display","none");
+        codigoCompra = parseInt(codigoCompra);
+        $.ajax({
+          data: {'codigoCompra':codigoCompra},
+          url: "{% url 'listadoCompras' %}",
+          method: 'get',
+          success: function (data) {
+            var proveedor = data[0].fields.compra[1];
+            var descripcion = data[0].fields.compra[0];
+            document.getElementById("panelConsultaProveedor").innerHTML= proveedor;
+            document.getElementById("panelConsultaDescripcion").innerHTML= descripcion;
+            $("#InfoConsulta").remove();
+            campo = '<div id = "InfoConsulta">';
+            var total = 0;
+            for (var i = 0; i < data.length; i++) {
+              campo += '<div class="form-group col-lg-6">' +
+                '<label for="infoProducto" class="form-control">'+ data[i].fields.producto + '</label>' +
+              '</div>' +
+              '<div class="form-group col-lg-2">' + 
+                '<label class="form-control">' + data[i].fields.precio + '</label>' +
+              '</div>' +
+              '<div class="form-group col-lg-2">' +
+                '<label class="form-control">' + data[i].fields.cantidad + '</label>' +
+              '</div>' +
+              '<div class="form-group col-lg-2">' +
+                '<label class="form-control">' + (data[i].fields.precio * data[i].fields.cantidad) + '</label>' +
+              '</div>';
+              total += (data[i].fields.precio * data[i].fields.cantidad);
+          };
+          campo+='<label for="valorTotal" class="col-lg-6 control-label">Valor total de la compra: ' + total + '</label>';
+          campo+="</div>";
+          $("#camposConsultar").append(campo);
+          $("#consultaProveedor").val("data[0].proveedor");
+          }
+        });
+      }
+    }
+  );
+});
+</script>
+{% endblock %}

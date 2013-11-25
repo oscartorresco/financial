@@ -2,27 +2,35 @@
 {% block titulo%} Proveedores {% endblock %}
 {% block css %}
 <style type="text/css">
-#opcionesAgregar, #panelBuscar, #panelAgregar, #panelEditar {
+#opcionesAgregar, #panelBuscar, #panelAgregar, #panelEditar, #listar {
   display: none;
 }
 th{
   text-align: center;
 }
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
 </style>
-<link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}css/jquery-ui-1.10.3.custom.css">
 {% endblock %}
 {% block js %}
 <script type="text/javascript">
 $(document).ready(function  () {
     paginacion();
 });
+function soloNumeros() {
+ if ((event.keyCode < 48) || (event.keyCode > 57)) 
+  event.returnValue = false;
+}
 </script>
 {% endblock %}
 {% block contenido %}
 <h1>Proveedores</h1>
 {% if mensaje %}
 {% if tipoMensaje = 1 %}
-<div class="alert alert-success alert-success">
+<div id="mensaje" class="alert alert-success alert-success">
   <button type="button" class="close" data-dismiss="alert">&times;</button>
 {% else %}
 <div class="alert alert-danger alert-danger">
@@ -31,9 +39,15 @@ $(document).ready(function  () {
   <strong>{{mensaje}}</strong>
 </div>
 {% endif %}
-<div id="mensaje" class="btn-group">
+<div id="agregarDiv" class="btn-group">
   <label id="agregar" class="btn btn-success btn-sm">
     <i class="fa fa-plus"></i> Nuevo Proveedor
+  </label>
+  <label id="buscar" class="btn btn-success btn-sm">
+    <i class="fa fa-search"></i> Buscar Proveedor
+  </label>
+  <label id="listar" class="btn btn-success btn-sm">
+    <i class="fa fa-table"></i> Listar Proveedores
   </label>
 </div>
 <div id="opcionesAgregar" class="btn-group">
@@ -43,26 +57,26 @@ $(document).ready(function  () {
 </div>
 <div id="panelAgregar">
   <br />
-  <form action="{% url 'agregarProveedor' %}" method="post" >
+  <form action="{% url 'agregarProveedor' %}" method="post" id="agregarProv">
     {% csrf_token %}
     <div class="row">
       <div class="form-group col-lg-6">
-        <label for="nombre">Codigo</label>
-        <input  type="text" class="form-control" name="codigo"  required="" placeholder="Codigo">
+        <label for="codigo">Codigo o NIT</label>
+        <input type="number" class="form-control" name="codigo" required="" placeholder="Codigo" onkeypress="soloNumeros()">
       </div>
       <div class="form-group col-lg-6">
-        <label for="documento">Nombre</label>
+        <label for="nombre">Nombre</label>
         <input type="text" class="form-control" name="nombre" required="" placeholder="Nombre">
       </div>
     </div>
     <div class="row">
       <div class="form-group col-lg-6">
-        <label for="nombre">Direccion</label>
+        <label for="direccion">Direccion</label>
         <input type="text" class="form-control" name="direccion" required="" id="direccion" placeholder="Direccion">
       </div>
       <div class="form-group col-lg-6">
-        <label for="documento">Telefono</label>
-        <input type="number" class="form-control" name="telefono" required="" placeholder="Telefono">
+        <label for="telefono">Telefono</label>
+        <input type="number" class="form-control" name="telefono" required="" placeholder="Telefono" onkeypress="soloNumeros()">
       </div>
     </div>
     <div class="row">
@@ -73,20 +87,70 @@ $(document).ready(function  () {
   </form>
 </div>
 
+<div id="panelEditar">
+  <br />
+  <form action="{% url 'editarProveedor' %}" method="post" name="editarProv" id="editarProv">
+    {% csrf_token %}
+    <div class="row">
+      <div class="form-group col-lg-6">
+        <label for="codigo">Codigo</label>
+        <input type="text" class="form-control" id="nuevoCodigo" name="nuevoCodigo" required="" readonly="readonly" />
+      </div>
+      <div class="form-group col-lg-6">
+        <label for="nombre">Nombre</label>
+        <input type="text" class="form-control" id="nuevoNombre" name="nuevoNombre" />
+      </div>
+    </div>
+    <div class="row">
+      <div class="form-group col-lg-6">
+        <label for="direccion">Direccion</label>
+        <input type="text" class="form-control" id="nuevaDireccion" name="nuevaDireccion" />
+      </div>
+      <div class="form-group col-lg-6">
+        <label for="telefono">Telefono</label>
+        <input type="text" class="form-control" id="nuevoTelefono" name="nuevoTelefono" readonly="readonly" />
+      </div>
+    </div>
+    <div class="row">
+      <div class="form-group col-lg-6">
+        <label for="estado">Estado</label>
+        <select class="form-control" name="nuevoEstado" id="nuevoEstado">
+          <option value="1"> Activo </option>
+          <option value="2"> Inactivo </option>
+        </select>
+      </div>
+    </div>
+    <div class="row">
+      <div class="form-group col-lg-6">
+        <input type="submit" id="btn_enviar" class="btn-success btn-sm" value="Guardar Cambios" />
+      </div>
+    </div>
+  </form>
+</div>
 <table id="listaProveedores" class="table table-striped">
-    <tr>
-      <th style="width: 100px">Codigo
-        <input type="text" class="input-sm" style="width: 100%" placeholder="Buscar" id= "busquedaCodigo" name="busquedaCodigo" onkeyup="paginacion()"/>
+    <tr id="grupoEtiquetas">
+      <th style="width: 100px" id="etiquetaCodigo">Codigo
       </th>
-      <th>Nombre
-        <input type="text" class="input-sm" style="width: 100%" placeholder="Buscar" id= "busquedaNombre" name="busquedaNombre" onkeyup="paginacion()"/>
+      <th id="etiquetaNombre">Nombre
       </th>
-      <th>Direccion
-        <input type="text" class="input-sm" style="width: 100%" placeholder="Buscar" id= "busquedaDireccion" name="busquedaDireccion" onkeyup="paginacion()"/>
+      <th id="etiquetaDireccion">Direccion
       </th>
-      <th>Telefono
-        <input type="text" class="input-sm" style="width: 100%" placeholder="Buscar" id= "busquedaTelefono" name="busquedaTelefono" onkeyup="paginacion()"/>
+      <th id="etiquetaTelefono">Telefono
       </th>
+    </tr>
+    <tr id="grupoCampos" hidden = "true">
+      <td>
+        <input type="text" class="form-control" style="width: 100%;" placeholder="Buscar por Codigo" id= "busquedaCodigo" name="busquedaCodigo" onkeyup="paginacion()" onkeypress="soloNumeros()"/>
+      </td>
+      <td>
+        <input type="text" class="form-control" style="width: 100%" placeholder="Buscar por Nombre" id= "busquedaNombre" name="busquedaNombre" onkeyup="paginacion()"/>
+      </td>
+      <td>
+        <input type="text" class="form-control" style="width: 100%" placeholder="Buscar por Direccion" id= "busquedaDireccion" name="busquedaDireccion" onkeyup="paginacion()"/>
+      </td>
+      <td>
+        <input type="text" class="form-control" style="width: 100%" placeholder="Buscar por Telefono" id= "busquedaTelefono" name="busquedaTelefono" onkeyup="paginacion()" onkeypress="soloNumeros()"/>
+      </td>
     </tr>
     <tbody class="tabla" id="tabla" value="{{cont}}">
       {% for proveedor in listaProveedores %}
@@ -107,25 +171,52 @@ $(document).ready(function  () {
 </center>
 <script type="text/javascript">
 $("#agregar").click(function() {
-  $("#opcionesLista").css("display","none");
   $("#opcionesAgregar").css("display","inline-block");
   $("#listaProveedores").css("display","none");
   $("#paginacion").css("display","none");
   $("#panelAgregar").css("display","block");
+  $("#panelEditar").css("display","none");
+  $("#mensaje").css("display","none");
+  $("#agregarDiv").css("display","none");
+  $("#agregarProv")[0].reset();
 });
 
 $("#cancelar").click(function() {
-  $("#opcionesLista").css("display","inline-block");
   $("#opcionesAgregar").css("display","none");
   $("#listaProveedores").css("display","table");
   $("#paginacion").css("display","");
   $("#panelAgregar").css("display","none");
+  $("#panelEditar").css("display","none");
+  $("#mensaje").css("display","none");
+  $("#agregarDiv").css("display","block");
 });
+
+$("#buscar").click(buscar);
+function buscar () {
+  $("#buscar").css("display","none");
+  $("#listar").css("display","block");
+  $("#grupoEtiquetas").attr('hidden',"");
+  $("#grupoCampos").removeAttr('hidden');
+}
+
+$("#listar").click(listar);
+function listar () {
+  $("#listar").css("display","none");
+  $("#buscar").css("display","block");
+  $("#grupoCampos").attr('hidden',"");
+  $("#grupoEtiquetas").removeAttr('hidden');
+  $("#busquedaNombre").val("");
+  $("#busquedaCodigo").val("");
+  $("#busquedaDireccion").val("");
+  $("#busquedaTelefono").val("");
+  paginacion();
+}
+
 $('.paginacionLi').click(paginacion);
 function paginacion(){
   var pag;
   try{
-    pag = $(this).val(); 
+    pag = $(this).val();
   }catch(error){
     pag = 0;
   }
@@ -155,14 +246,13 @@ function paginacion(){
     var data = {'pag':pag, 'busquedaCodigo':busquedaCodigo,'busquedaNombre':busquedaNombre,'busquedaDireccion':busquedaDireccion,'busquedaTelefono':busquedaTelefono};
     var url = "{% url 'buscarProveedor' %}";
     var type = 'get';
-    llamarAjax(data, url, type);
   } else {
     $('.pagination').val(pag);
     var data = {'pag':pag};
     var url = "{% url 'indexProveedor' %}";
     var type = 'get';
-    llamarAjax(data, url, type);
   }
+  llamarAjax(data, url, type);
 }
 
 function llamarAjax(info, url, type){
@@ -170,46 +260,23 @@ function llamarAjax(info, url, type){
     data: info,
     url: url,
     type: type,
-    success: function (data){
+    success: function (data) {
       if (data.length > 0){
         llenarTabla(data);
       } else {
         $("#tabla").find('tr').each(function(index){
-          $(this).removeClass("activo");
-          $(this).removeClass("danger");
-          if(index > data.length){
-            $(this).attr("id","");
-            $(this).find('td').each(function(index2){
-              switch(index2){
-                case 0:
-                  $(this).attr("id","");
-                  $(this).text("");
-                  break;
-                case 1:
-                  $(this).attr("id","");
-                  $(this).text("");
-                  break;
-                case 2:
-                  $(this).attr("id","");
-                  $(this).text("");
-                  break;
-                case 3:
-                  $(this).attr("id","");
-                  $(this).text("");
-                  break;
-              }
-            });
-          } else {
-            $(this).addClass("danger");
-            $(this).find('td').each(function(index2){
-              if (index2 == 1){
-                $(this).attr("id","");
-                $(this).text("No hay Resultados");
+          $(this).addClass("warning");
+          if(index == 0){
+            $(this).find('td').each(function (index2) {
+              if(index2 == 1){
+                $(this).html("<div class='alert-warning'><strong>No hay Resultados</strong></div>");
               } else {
                 $(this).attr("id","");
                 $(this).text("");
               }
             });
+          } else {
+            $(this).css("display","none");
           }
         });
       }
@@ -220,12 +287,13 @@ function llamarAjax(info, url, type){
 function llenarTabla (data) {
   if(data.mensaje == null){
     $("#listaProveedores").css("display","table");
-    //$("#mensaje").css("display","none");
     $("#tabla").find('tr').each(function(index){
       $(this).removeClass("activo");
+      $(this).removeClass("warning");
       $(this).removeClass("danger");
       if(index < data.length){
         $(this).addClass("activo");
+        $(this).css("display","table-row");
         if(!data[index].fields.estado)
           $(this).addClass("danger");
         $(this).attr("id",data[index].pk);
@@ -250,7 +318,7 @@ function llenarTabla (data) {
           }
         });
       } else {
-        $(this).removeClass("danger");
+        $(this).css("display","none");
         $(this).find('td').each(function(index2){
           $(this).attr("id","");
           $(this).text("");
@@ -264,8 +332,56 @@ function llenarTabla (data) {
   }
 }
 
-function editarProveedor (argument) {
-  // body...
-}
+$(document).ready(function(){
+    $('#tabla tr').click(function(){
+      var codigoProveedor = $($(this).children("td")[0]).text();
+      if(codigoProveedor.length > 0){
+        $("#opcionesAgregar").css("display","inline-block");
+        $("#listaProveedores").css("display","none");
+        $("#paginacion").css("display","none");
+        $("#panelAgregar").css("display","none");
+        $("#panelEditar").css("display","block");
+        $("#mensaje").css("display","none");
+        $("#agregarDiv").css("display","none");
+        $("#editarProv")[0].reset();
+        var info = [];
+        $(this).children("td").each(function (index2) {
+          info[index2] = $(this).text();
+        });
+        document.editarProv.nuevoCodigo.value = info[0];
+        $('#editarProv').find('input').each(function (index) {
+          $(this).attr("placeholder", info[index - 1]);
+        });
+        if($(this).hasClass("danger")){
+          document.editarProv.nuevoEstado.selectedIndex="1";
+        } else {
+          document.editarProv.nuevoEstado.selectedIndex="0";
+        }
+      }
+    });
+});
+
+/*
+$(function(){
+  $("#btn_enviar").click(function(){
+  var url = "{% url 'editarProveedor' %}";
+  $.ajax({
+    type: "POST",
+    url: url,
+    data: $("#editarProv").serialize(),
+    success: function(data){
+      $("#opcionesAgregar").css("display","none");
+      $("#listaProveedores").css("display","table");
+      $("#paginacion").css("display","");
+      $("#panelAgregar").css("display","none");
+      $("#panelEditar").css("display","none");
+      $("#mensaje").css("display","none");
+      $("#agregarDiv").css("display","block");
+      paginacion();
+    }
+  });
+  return false;
+  });
+});*/
 </script>
 {% endblock %}
