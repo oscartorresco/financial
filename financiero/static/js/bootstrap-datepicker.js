@@ -452,7 +452,7 @@
 								'<th class="prev">&lsaquo;</th>'+
 								'<th colspan="4" class="switch"></th>'+
 								'<th class="next">&rsaquo;</th>'+
-								'<th class="clean">&#8226;</th>'+
+								'<th class="clean"><i class="fa fa-eraser"><i></th>'+
 							'</tr>'+
 						'</thead>',
 		contTemplate: '<tbody><tr><td colspan="7"></td></tr></tbody>'

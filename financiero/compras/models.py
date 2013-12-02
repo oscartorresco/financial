@@ -2,12 +2,7 @@ from django.db import models
 from inventario.models import Producto
 
 #Modelo de Proveedor
-class ProveedorManager(models.Manager):
-	def get_by_natural_key(self, nombre):
-		return self.get(nombre = nombre)
-
 class Proveedor(models.Model):
-	objects = ProveedorManager()
 	codigo = models.IntegerField(primary_key=True)
 	nombre = models.CharField(max_length=100, null=False)
 	direccion = models.CharField(max_length=100, null=False)
