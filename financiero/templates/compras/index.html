@@ -1,9 +1,10 @@
 {% extends "rh_base.html" %}
 {% block titulo%} Compras {% endblock %}
 {% block css %}
+<link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}css/jquery-ui-1.10.3.custom.css">
 <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}css/datepicker.css"> 
 <style type="text/css">
-#opcionesAgregar, #panelBuscar, #panelAgregar, #panelConsultar, #listar {
+#opcionesAgregar, #panelBuscar, #panelAgregar, #panelConsultar, #opcionesLista, #grupoCampos {
   display: none;
 }
 th{
@@ -36,6 +37,7 @@ th{
 </style>
 {% endblock %}
 {% block js %}
+<script type="text/javascript" src="{{ STATIC_URL }}js/jquery-ui-1.10.3.custom.js"></script>
 <script type="text/javascript" src="{{ STATIC_URL }}js/bootstrap-datepicker.js"></script>
 <script type="text/javascript">
 $(document).ready(function  () {
@@ -69,7 +71,6 @@ function validacionFormulario () {
         if(valorProducto == -1){
           $("#errorProducto_"+i).fadeIn("slow");
           $("#productos_"+i).focus();
-          //console.log("No enviar Menor de cero");
         } else {
           $("#errorCantidad_"+i).fadeIn("slow");
           $("#cantidad_"+i).focus();
@@ -84,11 +85,20 @@ function soloNumeros() {
  if ((event.keyCode < 48) || (event.keyCode > 57)) 
   event.returnValue = false;
 }
+function fecha(fecha){
+  var infoFecha = fecha.split("-");
+  var meses = ["Enero","Febrero","marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"]
+  var fecha = infoFecha[2] + " de " + meses[infoFecha[1] - 1] + " del " + infoFecha[0];
+  return fecha;
+}
 </script>
 {% endblock %}
 {% block contenido %}
 <h1>Compras</h1>
 {% if mensaje %}
+<script>
+  window.history.pushState(null, "Compras", "{% url 'indexCompras' %}");
+</script>
 {% if tipoMensaje = 1 %}
 <div id="mensaje" class="alert alert-success alert-success">
   <button type="button" class="close" data-dismiss="alert">&times;</button>
@@ -100,12 +110,18 @@ function soloNumeros() {
 </div>
 {% endif %}
 <div id="agregarDiv" class="btn-group">
+  {% if proveedores %}
   <label id="agregar" class="btn btn-success btn-sm">
     <i class="fa fa-plus"></i> Nueva Compra
   </label>
+  {% endif %}
+  {% if listaCompras %}
   <label id="buscar" class="btn btn-success btn-sm">
     <i class="fa fa-search"></i> Buscar Compra
   </label>
+  {% endif %}
+</div>
+<div id="opcionesLista" class="btn-group">
   <label id="listar" class="btn btn-success btn-sm">
     <i class="fa fa-table"></i> Listar Compras
   </label>
@@ -160,9 +176,8 @@ function soloNumeros() {
       <input type="hidden" name="cantidadproductos" id="cantidadproductos" value="1"/>
     </div>
     <div class="row">
-      <div class="form-group">
-        <label for="valorTotal" class="col-lg-6 control-label">Valor total de la compra: $<span id="valorTotal">0</span></label>
-      </div>
+      <div class="col-md-2 col-md-offset-8"><label>Valor total de la compra</label></div>
+      <div class="col-md-2"><label id="valorTotal">0</label></div>
     </div>
     <div class="row">
       <div class="form-group col-lg-6 btn-group">
@@ -183,6 +198,11 @@ function soloNumeros() {
       <label for="infoDescripcion" class="form-control" id="panelConsultaDescripcion">Consultar descripcion</label>
     </div>
   </div>
+  <div class="row">
+    <div class="form-group col-lg-4">
+      <label for="descripcion">Fecha: <span id="panelConsultaFecha">Consultar Fecha</span></label>
+    </div>
+  </div>
   <div class="row" id ="camposConsultar">
     <div class="form-group col-lg-6">
       <label for="producto">Producto</label>
@@ -198,60 +218,62 @@ function soloNumeros() {
     </div>
   </div>
 </div>
+{% if listaCompras %}
+<div id="grupoCampos">
+  <input type="text" class="form-control" placeholder="Buscar por Codigo" id= "busquedaCodigo" name="busquedaCodigo" onkeyup="paginacion()" onkeypress="soloNumeros()" style="width: 19%; float:left"/>
+  <input type="text" class="form-control" placeholder="Buscar por Descripcion" id= "busquedaDescripcion" name="busquedaDescripcion" onkeyup="paginacion()" style="width: 44%; float:left"/>
+  <input type="text" class="form-control" placeholder="Buscar por Fecha" id="busquedaFecha" name="busquedaFecha" readonly="" data-date-weekStart="1" data-date="today" data-date-format="yyyy-mm-dd" style="width: 17%; float:left"/>
+  <input type="text" class="form-control" placeholder="Buscar por Proveedor" id= "busquedaProveedor" name="busquedaProveedor" onkeyup="paginacion()" style="width: 20%; float:left"/>
+</div>
 <table id="listaCompras" class="table table-striped">
     <tr id="grupoEtiquetas">
-    	<th style="width: 100px">Codigo
+    	<th style="width: 19%;">Codigo
     	</th>
-    	<th>Descripcion
+    	<th style="width: 44%;">Descripcion
     	</th>
-    	<th>Fecha
+    	<th style="width: 17%;">Fecha
     	</th>
-      <th>Proveedor
+      <th style="width: 20%;">Proveedor
       </th>
-    </tr>
-    <tr id="grupoCampos" hidden = "true">
-      <td>
-        <input type="text" class="form-control" style="width: 100%" placeholder="Buscar por Codigo" id= "busquedaCodigo" name="busquedaCodigo" onkeyup="paginacion()" onkeypress="soloNumeros()"/>
-      </td>
-      <td>
-        <input type="text" class="form-control" style="width: 100%" placeholder="Buscar por Descripcion" id= "busquedaDescripcion" name="busquedaDescripcion" onkeyup="paginacion()"/>
-      </td>
-      <td>
-        <input type="text" class="form-control" style="width: 100%; cursor:pointer" placeholder="Buscar por Fecha" id="busquedaFecha" name="busquedaFecha" readonly="" data-date-weekStart="1" data-date="today" data-date-format="yyyy-mm-dd" />
-      </td>
-      <td>
-        <input type="text" class="form-control" style="width: 100%" placeholder="Buscar por Proveedor" id= "busquedaProveedor" name="busquedaProveedor" onkeyup="paginacion()"/>
-      </td>
     </tr>
     <tbody class="tabla" id="tabla" value="{{cont}}">
       {% for compras in listaCompras %}
         <tr class="datoLista " style"cursor: pointer;" >
-          <td id=""></td>
-          <td id=""></td>
-          <td id=""></td>
-          <td id=""></td>
+          <td id="" style="width: 19%;"></td>
+          <td id="" style="width: 44%;"></td>
+          <td id="" style="width: 17%;"></td>
+          <td id="" style="width: 20%;"></td>
         </tr>
       {% endfor %}
     </tbody>
 </table>
 <center>
   <ul class="pagination" value="{{pag}}" id="paginacion">
-    <li class="paginacionLi" value="-1"><a style="cursor: pointer;">&laquo;</a></li>
-    <li class="paginacionLi" value="-2"><a style="cursor: pointer;">&raquo;</a></li>
+    <li class="paginacionLi" value="-1" id="atras"><a id="textoAtras" style="cursor: pointer;">&laquo;</a></li>
+    <li id="listapagActual"><a>Pagina <span id="paginaActual">{{pag}}</span> de <span id="totalPaginas">{{cont}}</span></a></li>
+    <li class="paginacionLi" value="-2" id="adelante"><a id="textoAdelante" style="cursor: pointer;">&raquo;</a></li>
   </ul>
 </center>
-
+{% else %}
+{% if proveedores %}
+<div class="alert alert-warning" id="sindatos"><strong>No hay Compras</strong></div>
+{% else %}
+<div class="alert alert-warning" id="sindatos"><strong>No hay Proveedores, para registrar una compra primero debe agregar un proveedor</strong></div>
+{% endif %}
+{% endif %}
 <script type="text/javascript">
 var numSelect = 0;
 var idDivConsulta = 0;
 $("#agregar").click(function() {
   $("#opcionesAgregar").css("display","inline-block");
   $("#listaCompras").css("display","none");
+  $("#sindatos").css("display","none");
   $("#paginacion").css("display","none");
   $("#panelAgregar").css("display","block");
   $("#panelConsultar").css("display","none");
   $("#mensaje").css("display","none");
   $("#agregarDiv").css("display","none");
+  $("#opcionesLista").css("display","none");
   $("#agregarCompra")[0].reset();
 });
 
@@ -262,22 +284,32 @@ $("#cancelar").click(function() {
   $("#panelAgregar").css("display","none");
   $("#panelConsultar").css("display","none");
   $("#mensaje").css("display","none");
-  $("#agregarDiv").css("display","block");
+  var busquedaCodigo = $("#busquedaCodigo").val();
+  var busquedaDescripcion = $("#busquedaDescripcion").val();
+  var busquedaProveedor = $("#busquedaProveedor").val();
+  var busquedaFecha = $("#busquedaFecha").val();
+  if((busquedaCodigo.length > 0) || (busquedaDescripcion.length > 0) || (busquedaProveedor.length > 0) || (busquedaFecha.length > 0)){
+    $("#opcionesLista").css("display","inline-block");
+    $("#grupoCampos").css("display","block");
+  } else {
+    $("#agregarDiv").css("display","inline-block");
+    $("#grupoEtiquetas").removeAttr('hidden');
+  }
 });
 
 $("#buscar").click(buscar);
 function buscar () {
-  $("#buscar").css("display","none");
-  $("#listar").css("display","block");
+  $("#agregarDiv").css("display","none");
+  $("#opcionesLista").css("display","inline-block");
   $("#grupoEtiquetas").attr('hidden',"");
-  $("#grupoCampos").removeAttr('hidden');
+  $("#grupoCampos").css("display", "block");
 }
 
 $("#listar").click(listar);
 function listar () {
-  $("#listar").css("display","none");
-  $("#buscar").css("display","block");
-  $("#grupoCampos").attr('hidden',"");
+  $("#agregarDiv").css("display","block");
+  $("#opcionesLista").css("display","none");
+  $("#grupoCampos").css("display", "none");
   $("#grupoEtiquetas").removeAttr('hidden');
   $("#busquedaCodigo").val("");
   $("#busquedaDescripcion").val("");
@@ -295,6 +327,7 @@ function ocultarError () {
 $('.paginacionLi').click(paginacion);
 function paginacion(){
   var pag;
+  var totalPaginas = $("#totalPaginas").text();
   try{
     pag = $(this).val();
   }catch(error){
@@ -312,8 +345,8 @@ function paginacion(){
   }else{
     if(pag == '-2'){
       pag = (aux+1);
-      if(pag > {{cont}})
-        pag = {{cont}};
+      if(pag > totalPaginas)
+        pag = totalPaginas;
     }else{
       pag = aux;
     }
@@ -337,9 +370,23 @@ function paginacion(){
     url: url,
     type: type,
     success: function (data) {
+      if(!(typeof(data.cont) == "undefined")) {
+        totalPaginas = $.parseJSON(data.cont);
+        $("#totalPaginas").text(totalPaginas);
+        pag = $.parseJSON(data.paginaAct);
+        $("#paginaActual").text(pag);
+        data = $.parseJSON(data.datos);
+      } else {
+        totalPaginas = {{cont}}
+        $("#totalPaginas").text({{cont}});
+        $("#paginaActual").text(pag);
+      }
+      botones(pag, totalPaginas);
       if (data.length > 0){
+        $("#paginacion").css("display","");
         llenarTabla(data);
       } else {
+        $("#paginacion").css("display","none");
         $("#tabla").find('tr').each(function(index){
           $(this).addClass("warning");
           if(index == 0){
@@ -359,6 +406,19 @@ function paginacion(){
       }
     }
   });
+}
+
+function botones(pag, totalPaginas){
+  if(pag == 1){
+    $("#atras").css("display", "none");
+  } else {
+    $("#atras").css("display", "inline");
+  }
+  if(pag == totalPaginas){
+    $("#adelante").css("display", "none");
+  } else {
+    $("#adelante").css("display", "inline");
+  }
 }
 
 $("select#proveedor").change(cargarProductos);
@@ -398,7 +458,6 @@ function cargarProductos () {
         var option = new Option("--Seleccione el producto--", "-1", false, false);
         productosLista.options[0] = option;
         for (i=0; i<data.length; i++) {
-          //var option = new Option(texto, value, false, false);
           var option = new Option(data[i].fields.nombre, data[i].pk, false, false);
           productosLista.options[i+1] = option;
         }
@@ -419,7 +478,6 @@ function cargarPrecio (id) {
     var productoId = productosLista.options[productosLista.selectedIndex].value;
     var proveedoresLista = document.getElementById('proveedor');
     var proveedorId = proveedoresLista.options[proveedoresLista.selectedIndex].value;
-    console.log(id);
     if (productoId > 0) {
       $.ajax({
         data: {'producto':productoId,'proveedor':proveedorId},
@@ -539,7 +597,7 @@ function llenarTabla (data) {
               break;
             case 2:
               $(this).attr("id",data[index].fields.fecha);
-              $(this).text(data[index].fields.fecha);
+              $(this).text(fecha(data[index].fields.fecha));
               break;
             case 3:
               $(this).attr("id",data[index].pk);
@@ -561,7 +619,7 @@ function llenarTabla (data) {
   }
 }
 
-$(document).ready(function(){
+
     $('#tabla tr').click(function(){
       var codigoCompra = $($(this).children("td")[0]).text();
       if(codigoCompra.length > 0){
@@ -572,18 +630,21 @@ $(document).ready(function(){
         $("#panelConsultar").css("display","block");
         $("#mensaje").css("display","none");
         $("#agregarDiv").css("display","none");
+        $("#grupoCampos").css("display","none");
+        $("#opcionesLista").css("display","none");
         $("#agregarCompra")[0].reset();
-        $("#sindatos").css("display","none");
         codigoCompra = parseInt(codigoCompra);
         $.ajax({
           data: {'codigoCompra':codigoCompra},
           url: "{% url 'listadoCompras' %}",
           method: 'get',
           success: function (data) {
-            var proveedor = data[0].fields.compra[1];
-            var descripcion = data[0].fields.compra[0];
-            document.getElementById("panelConsultaProveedor").innerHTML= proveedor;
-            document.getElementById("panelConsultaDescripcion").innerHTML= descripcion;
+            var descripcionCompra = data[0].fields.compra[0];
+            var fechaCompra = data[0].fields.compra[1];
+            var proveedorCompra = data[0].fields.compra[2];
+            $("#panelConsultaProveedor").text(proveedorCompra);
+            $("#panelConsultaDescripcion").text(descripcionCompra);
+            $("#panelConsultaFecha").text(fecha(fechaCompra));
             $("#InfoConsulta").remove();
             campo = '<div id = "InfoConsulta">';
             var total = 0;
@@ -602,8 +663,11 @@ $(document).ready(function(){
               '</div>';
               total += (data[i].fields.precio * data[i].fields.cantidad);
           };
-          campo+='<label for="valorTotal" class="col-lg-6 control-label">Valor total de la compra: ' + total + '</label>';
-          campo+="</div>";
+          campo += '<div class="row">' +
+          '<div class="col-md-2 col-md-offset-8"><label>Valor total de la compra</label></div>' +
+          '<div class="col-md-2"><label id="valorTotal">' + total + '</label></div>' +
+          '</div>' + 
+          '</div>';
           $("#camposConsultar").append(campo);
           $("#consultaProveedor").val("data[0].proveedor");
           }
@@ -611,6 +675,6 @@ $(document).ready(function(){
       }
     }
   );
-});
+
 </script>
 {% endblock %}

@@ -11,12 +11,13 @@ from django.db.models import Q, F, Sum, Count
 from django.utils import timezone
 from django.db import connection
 from django.core.urlresolvers import reverse
+from django.forms.models import model_to_dict
 
 #Paginacion
 def paginacionAjax(listaDatos, pag):
 	num = len(listaDatos)
 	datosPaginacion = Paginator(listaDatos, 10);
-	cont=datosPaginacion.num_pages;
+	cont = datosPaginacion.num_pages;
 	if pag[:1] == '*':
 		pag = pag.strip('*')
 		pag = int(pag) - 1
@@ -32,9 +33,10 @@ def paginacionAjax(listaDatos, pag):
 		info = datosPaginacion.page(int(pag))
 	else:
 		info = datosPaginacion.page(1)
+		pag = 1
 	if(num == 0):
 		cont = 0
-	return info
+	return {'info':info, 'cont':cont, 'pag':pag}
 
 def buscarProductos(request):
 	if request.method == 'GET':
@@ -70,7 +72,7 @@ def indexCompras(request):
 	listaCompras = Compra.objects.all()
 	if request.is_ajax():
 		info = paginacionAjax(listaCompras, pag)
-		data = serializers.serialize('json', info, use_natural_keys=True);
+		data = serializers.serialize('json', info['info'], use_natural_keys=True);
 		return HttpResponse(data,mimetype='aplication/json')
 	else:
 		#Se quitan los proveedores de estado inactivo
@@ -114,14 +116,13 @@ def agregarCompra(request):
 							return render(request, 'compras/index.html', info)
 				info = paginacionCompras(listaCompras, "*1", proveedores, "La compra se guardo satisfactoriamente", 1)
 				return render(request, 'compras/index.html', info)
-				#return redirect('compras.views.indexCompras')
 			except Proveedor.DoesNotExist:
 				info = paginacionCompras(listaCompras, "*1", proveedores, "Ocurrio un problema al guardar la compra, por favor verifique la informacion del proveedor e intentelo mas tarde", 2)
 				return render(request, 'compras/index.html', info)
 		except Exception as e:
-			return redirect('compras.views.indexCompras')
+			info = paginacionCompras(listaCompras, "*1", proveedores, "Ocurrio un problema al guardar la compra, por favor intentelo mas tarde", 2)
+			return render(request, 'compras/index.html', info)
 	else:
-		print "Aqui 3"
 		return redirect('compras.views.indexCompras')
 
 def listadoCompras(request):
@@ -161,17 +162,21 @@ def buscarCompra(request):
 					listaCompras = []
 			else:
 				listaCompras = []
+		datos = {}
 		if array:
 			try:
 				pag=request.GET['pag']
 			except:
 				pag="*1"
 			info = paginacionAjax(listaCompras, pag)
-			data = serializers.serialize('json', info, use_natural_keys=True);
-			return HttpResponse(data,mimetype='aplication/json')
+			datos['datos'] = serializers.serialize('json', info['info'], use_natural_keys=True);
+			datos['paginaAct'] = info['pag']
+			datos['cont'] = info['cont']
 		else:
-			data=serializers.serialize('json',[listaCompras], use_natural_keys=True);
-			return HttpResponse(data,mimetype='aplication/json')
+			datos['datos'] = serializers.serialize('json',[listaCompras], use_natural_keys=True)
+			datos['paginaAct'] = "1"
+			datos['cont'] = "1"
+		return HttpResponse(json.dumps(datos), mimetype='aplication/json')
 	else:
 		return redirect('compras.views.indexCompras')
 
@@ -205,10 +210,9 @@ def indexProveedor(request, mensaje="", tipoMensaje=0):
 	except:
 		pag="*1"
 	listaProveedores = Proveedor.objects.all()
-	print (request.session.get('error_message','')), "Aqui vamos Bn"
 	if request.is_ajax():
 		info = paginacionAjax(listaProveedores, pag)
-		data = serializers.serialize('json',info)
+		data = serializers.serialize('json',info['info'])
 		return HttpResponse(data,mimetype='aplication/json')
 	else:
 		info = paginacionProv(listaProveedores, pag, mensaje, tipoMensaje)
@@ -229,14 +233,11 @@ def agregarProveedor(request):
 		except Proveedor.DoesNotExist:
 			proveedor = Proveedor(codigo,nombre,direccion,telefono,estado)
 			try:
-				#proveedor.save()
+				proveedor.save()
 				info = paginacionProv(listaProveedores, pag, "El proveedor se ha agregado Correctamente", 1)
 			except IntegrityError:
 				info = paginacionProv(listaProveedores, pag, "El Proveedor no se ha podido agregar, revise el telefono", 3)
 		return render(request, 'proveedor/index.html', info)
-		#return redirect(reverse('compras.views.indexProveedor', mensaje=mensaje))
-		#return HttpResponseRedirect(reverse('compras.views.indexProveedor',args=(mensaje,)))
-		#return redirect('compras.views.indexProveedor')
 	else:
 		return redirect('compras.views.indexProveedor')
 
@@ -272,7 +273,6 @@ def editarProveedor(request):
 			listaProveedores = Proveedor.objects.all()
 			info = paginacionProv(listaProveedores, pag, "El Proveedor no se ha podido modificar, revise el codigo", 2)
 		return render(request, 'proveedor/index.html', info)
-		#return redirect('compras.views.indexProveedor', "mensaje", 1)
 	else:
 		return redirect('compras.views.indexProveedor')
 
@@ -323,16 +323,20 @@ def buscarProveedor(request):
 				array = False
 			except Proveedor.DoesNotExist:
 				listaProveedores = []
+		datos = {}
 		if array:
 			try:
 				pag=request.GET['pag']
 			except:
 				pag="*1"
 			info = paginacionAjax(listaProveedores, pag)
-			data = serializers.serialize('json', info);
-			return HttpResponse(data, mimetype='aplication/json')
+			datos['datos'] = serializers.serialize('json', info['info'], use_natural_keys=True);
+			datos['paginaAct'] = info['pag']
+			datos['cont'] = info['cont']
 		else:
-			data=serializers.serialize('json',[listaProveedores]);
-			return HttpResponse(data,mimetype='aplication/json')
+			datos['datos'] = serializers.serialize('json',[listaProveedores], use_natural_keys=True)
+			datos['paginaAct'] = "1"
+			datos['cont'] = "1"
+		return HttpResponse(json.dumps(datos), mimetype='aplication/json')
 	else:
 		return redirect('compras.views.indexProveedor')

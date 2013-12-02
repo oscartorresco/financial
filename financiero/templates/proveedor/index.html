@@ -2,7 +2,7 @@
 {% block titulo%} Proveedores {% endblock %}
 {% block css %}
 <style type="text/css">
-#opcionesAgregar, #panelBuscar, #panelAgregar, #panelEditar, #listar {
+#opcionesAgregar, #panelBuscar, #panelAgregar, #panelEditar, #opcionesLista, #grupoCampos {
   display: none;
 }
 th{
@@ -29,6 +29,9 @@ function soloNumeros() {
 {% block contenido %}
 <h1>Proveedores</h1>
 {% if mensaje %}
+<script>
+  window.history.pushState(null, "Proveedores", "{% url 'indexProveedor' %}");
+</script>
 {% if tipoMensaje = 1 %}
 <div id="mensaje" class="alert alert-success alert-success">
   <button type="button" class="close" data-dismiss="alert">&times;</button>
@@ -43,11 +46,15 @@ function soloNumeros() {
   <label id="agregar" class="btn btn-success btn-sm">
     <i class="fa fa-plus"></i> Nuevo Proveedor
   </label>
+  {% if listaProveedores %}
   <label id="buscar" class="btn btn-success btn-sm">
     <i class="fa fa-search"></i> Buscar Proveedor
   </label>
+  {% endif %}
+</div>
+<div id="opcionesLista" class="btn-group">
   <label id="listar" class="btn btn-success btn-sm">
-    <i class="fa fa-table"></i> Listar Proveedores
+    <i class="fa fa-table"></i> Listar Compras
   </label>
 </div>
 <div id="opcionesAgregar" class="btn-group">
@@ -127,48 +134,45 @@ function soloNumeros() {
     </div>
   </form>
 </div>
+{% if listaProveedores %}
+<div id="grupoCampos">
+  <input type="text" class="form-control" style="width: 8%; float:left" placeholder="Codigo" id= "busquedaCodigo" name="busquedaCodigo" onkeyup="paginacion()" onkeypress="soloNumeros()"/>
+  <input type="text" class="form-control" style="width: 40%; float:left" placeholder="Buscar por Nombre" id= "busquedaNombre" name="busquedaNombre" onkeyup="paginacion()"/>
+  <input type="text" class="form-control" style="width: 22%; float:left" placeholder="Buscar por Direccion" id= "busquedaDireccion" name="busquedaDireccion" onkeyup="paginacion()"/>
+  <input type="text" class="form-control" style="width: 30%; float:left" placeholder="Buscar por Telefono" id= "busquedaTelefono" name="busquedaTelefono" onkeyup="paginacion()" onkeypress="soloNumeros()"/>
+</div>
 <table id="listaProveedores" class="table table-striped">
     <tr id="grupoEtiquetas">
-      <th style="width: 100px" id="etiquetaCodigo">Codigo
+      <th style="width: 8%;" id="etiquetaCodigo">Codigo
       </th>
-      <th id="etiquetaNombre">Nombre
+      <th style="width: 40%;" id="etiquetaNombre">Nombre
       </th>
-      <th id="etiquetaDireccion">Direccion
+      <th style="width: 22%;" id="etiquetaDireccion">Direccion
       </th>
-      <th id="etiquetaTelefono">Telefono
+      <th style="width: 30%;" id="etiquetaTelefono">Telefono
       </th>
-    </tr>
-    <tr id="grupoCampos" hidden = "true">
-      <td>
-        <input type="text" class="form-control" style="width: 100%;" placeholder="Buscar por Codigo" id= "busquedaCodigo" name="busquedaCodigo" onkeyup="paginacion()" onkeypress="soloNumeros()"/>
-      </td>
-      <td>
-        <input type="text" class="form-control" style="width: 100%" placeholder="Buscar por Nombre" id= "busquedaNombre" name="busquedaNombre" onkeyup="paginacion()"/>
-      </td>
-      <td>
-        <input type="text" class="form-control" style="width: 100%" placeholder="Buscar por Direccion" id= "busquedaDireccion" name="busquedaDireccion" onkeyup="paginacion()"/>
-      </td>
-      <td>
-        <input type="text" class="form-control" style="width: 100%" placeholder="Buscar por Telefono" id= "busquedaTelefono" name="busquedaTelefono" onkeyup="paginacion()" onkeypress="soloNumeros()"/>
-      </td>
     </tr>
     <tbody class="tabla" id="tabla" value="{{cont}}">
       {% for proveedor in listaProveedores %}
         <tr class="datoLista " style"cursor: pointer;" >
-          <td id=""></td>
-          <td id=""></td>
-          <td id=""></td>
-          <td id=""></td>
+          <td id="" style="width: 8%;"></td>
+          <td id="" style="width: 40%;"></td>
+          <td id="" style="width: 22%;"></td>
+          <td id="" style="width: 30%;"></td>
         </tr>
       {% endfor %}
     </tbody>
 </table>
 <center>
   <ul class="pagination" value="{{pag}}" id="paginacion">
-    <li class="paginacionLi" value="-1"><a style="cursor: pointer;">&laquo;</a></li>
-    <li class="paginacionLi" value="-2"><a style="cursor: pointer;">&raquo;</a></li>
+    <li class="paginacionLi" value="-1" id="atras"><a id="textoAtras" style="cursor: pointer;">&laquo;</a></li>
+    <li id="listapagActual"><a>Pagina <span id="paginaActual">{{pag}}</span> de <span id="totalPaginas">{{cont}}</span></a></li>
+    <li class="paginacionLi" value="-2" id="adelante"><a id="textoAdelante" style="cursor: pointer;">&raquo;</a></li>
   </ul>
 </center>
+{% else %}
+<div class="alert alert-warning" id="sindatos"><strong>No hay Proveedores</strong></div>
+{% endif %}
 <script type="text/javascript">
 $("#agregar").click(function() {
   $("#opcionesAgregar").css("display","inline-block");
@@ -178,6 +182,7 @@ $("#agregar").click(function() {
   $("#panelEditar").css("display","none");
   $("#mensaje").css("display","none");
   $("#agregarDiv").css("display","none");
+  $("#sindatos").css("display","none");
   $("#agregarProv")[0].reset();
 });
 
@@ -188,22 +193,28 @@ $("#cancelar").click(function() {
   $("#panelAgregar").css("display","none");
   $("#panelEditar").css("display","none");
   $("#mensaje").css("display","none");
-  $("#agregarDiv").css("display","block");
+  if((busquedaCodigo.length > 0) || (busquedaNombre.length > 0) || (busquedaDireccion.length > 0) || (busquedaTelefono.length > 0)){
+    $("#opcionesLista").css("display","inline-block");
+    $("#grupoCampos").css("display","block");
+  } else {
+    $("#grupoEtiquetas").removeAttr('hidden');
+    $("#agregarDiv").css("display","inline-block");
+  }
 });
 
 $("#buscar").click(buscar);
 function buscar () {
-  $("#buscar").css("display","none");
-  $("#listar").css("display","block");
+  $("#agregarDiv").css("display","none");
+  $("#opcionesLista").css("display","inline-block");
   $("#grupoEtiquetas").attr('hidden',"");
-  $("#grupoCampos").removeAttr('hidden');
+  $("#grupoCampos").css("display", "block");
 }
 
 $("#listar").click(listar);
 function listar () {
-  $("#listar").css("display","none");
-  $("#buscar").css("display","block");
-  $("#grupoCampos").attr('hidden',"");
+  $("#agregarDiv").css("display","block");
+  $("#opcionesLista").css("display","none");
+  $("#grupoCampos").css("display", "none");
   $("#grupoEtiquetas").removeAttr('hidden');
   $("#busquedaNombre").val("");
   $("#busquedaCodigo").val("");
@@ -215,6 +226,7 @@ function listar () {
 $('.paginacionLi').click(paginacion);
 function paginacion(){
   var pag;
+  var totalPaginas = $("#totalPaginas").text();
   try{
     pag = $(this).val();
   }catch(error){
@@ -232,12 +244,13 @@ function paginacion(){
   }else{
     if(pag == '-2'){
       pag = (aux+1);
-      if(pag > {{cont}})
-        pag = {{cont}};
+      if(pag > totalPaginas)
+        pag = totalPaginas;
     }else{
       pag = aux;
     }
   }
+  $('.pagination').val(pag);
   busquedaCodigo = document.getElementById('busquedaCodigo').value;
   busquedaNombre = document.getElementById('busquedaNombre').value;
   busquedaDireccion = document.getElementById('busquedaDireccion').value;
@@ -247,28 +260,42 @@ function paginacion(){
     var url = "{% url 'buscarProveedor' %}";
     var type = 'get';
   } else {
-    $('.pagination').val(pag);
     var data = {'pag':pag};
     var url = "{% url 'indexProveedor' %}";
     var type = 'get';
   }
-  llamarAjax(data, url, type);
+  llamarAjax(data, url, type, pag, totalPaginas);
 }
 
-function llamarAjax(info, url, type){
+function llamarAjax(info, url, type, pag, totalPaginas){
   $.ajax({
     data: info,
     url: url,
     type: type,
     success: function (data) {
+      if(!(typeof(data.cont) == "undefined")) {
+        totalPaginas = $.parseJSON(data.cont);
+        $("#totalPaginas").text(totalPaginas);
+        pag = $.parseJSON(data.paginaAct);
+        $("#paginaActual").text(pag);
+        data = $.parseJSON(data.datos);
+      } else {
+        $("#totalPaginas").text({{cont}});
+        totalPaginas = {{cont}}
+        $("#paginaActual").text(pag);
+      }
+      botones(pag, totalPaginas);
       if (data.length > 0){
+        $("#paginacion").css("display","");
         llenarTabla(data);
       } else {
+        $("#paginacion").css("display","none");
         $("#tabla").find('tr').each(function(index){
           $(this).addClass("warning");
           if(index == 0){
             $(this).find('td').each(function (index2) {
               if(index2 == 1){
+                $(this).css("cursor","default");
                 $(this).html("<div class='alert-warning'><strong>No hay Resultados</strong></div>");
               } else {
                 $(this).attr("id","");
@@ -282,6 +309,19 @@ function llamarAjax(info, url, type){
       }
     }
   });
+}
+
+function botones(pag, totalPaginas){
+  if(pag == 1){
+    $("#atras").css("display", "none");
+  } else {
+    $("#atras").css("display", "inline");
+  }
+  if(pag == totalPaginas){
+    $("#adelante").css("display", "none");
+  } else {
+    $("#adelante").css("display", "inline");
+  }
 }
 
 function llenarTabla (data) {
@@ -298,6 +338,7 @@ function llenarTabla (data) {
           $(this).addClass("danger");
         $(this).attr("id",data[index].pk);
         $(this).find('td').each(function(index2){
+          $(this).css("cursor","pointer");
           switch(index2){
             case 0:
               $(this).attr("id",data[index].pk);
@@ -343,7 +384,9 @@ $(document).ready(function(){
         $("#panelEditar").css("display","block");
         $("#mensaje").css("display","none");
         $("#agregarDiv").css("display","none");
+        $("#grupoCampos").css("display","none");
         $("#editarProv")[0].reset();
+        $("#opcionesLista").css("display","none");
         var info = [];
         $(this).children("td").each(function (index2) {
           info[index2] = $(this).text();

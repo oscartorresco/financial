@@ -21,29 +21,19 @@ class Proveedor(models.Model):
 		unique_together = (('nombre'),)
 
 #Modelo de Compra
-class CompraManager(models.Manager):
-	def get_by_natural_key(self, proveedor, descripcion):
-		return self.get(descripcion=descripcion, proveedor = proveedor)
-
 class Compra(models.Model):
-	objects = CompraManager()
 	codigo = models.AutoField(primary_key=True)
 	descripcion = models.CharField(max_length=100,null=False)
 	fecha = models.DateField(null=False)
 	proveedor = models.ForeignKey(Proveedor)
 	def natural_key(self):
-		return (self.descripcion,) + (self.proveedor.natural_key(),)
+		return (self.descripcion, self.fecha) + (self.proveedor.natural_key(),)
 	natural_key.dependencies = ['compras.proveedor']
 	def __unicode__(self):
 		return self.descripcion
 
 #Modelo de Compra_Producto
-class CompraProductoManager(models.Manager):
- 	def get_by_natural_key(self, compra):
- 		return self.get(compra = compra)
-
 class Compra_Producto(models.Model):
-	#objects = CompraProductoManager()
 	cantidad = models.IntegerField(null=False)
 	precio = models.BigIntegerField(null=False)
 	compra = models.ForeignKey(Compra)
