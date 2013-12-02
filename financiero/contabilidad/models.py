@@ -15,6 +15,8 @@ class PUC(models.Model):
     naturaleza=models.CharField(max_length=30, null=False, choices=NATURALEZA_CUENTA)
     def __unicode__(self):
         return str(self.codigo)+' - '+self.nombre
+    def natural_key(self):
+        return str(self.codigo) +' - '+ self.nombre
     
 class Transaccion(models.Model):
     id=models.IntegerField(primary_key=True)
@@ -30,5 +32,8 @@ class Transaccion(models.Model):
     tipo=models.CharField(max_length=20, null=False, choices=TIPO_TRANSACCION)
     def __unicode__(self):
         return self.concepto+' - '+self.valor
+    def natural_key(self):
+        return self.numero_cuenta.natural_key()
+    natural_key.dependencies = ['contabilidad.PUC']
     
     

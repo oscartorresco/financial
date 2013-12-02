@@ -14,30 +14,220 @@
 <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}css/jquery-ui-1.10.3.custom.css">
 {% endblock %}
 {% block js %}
+
 	 <script type="text/javascript" src="{{ STATIC_URL }}js/jquery-ui-1.10.3.custom.js"></script>
+	 
+	 <script>
+  $(function() {
+  	$( "#buscarFecha" ).datepicker();
+    $( "#buscarFecha" ).datepicker( "option", "dateFormat", 'yy-mm-dd');
+  });
+  </script>
+	 <!--Mediante este script se carga todo el PUC al sistema contable. Tambien se agrega la funcion de acutocompletado
+	 para que el usuario digite una parte del codigo o el nombre de la cuente y el sistema le va filtrando hasta encontrar
+	 la cuenta que el usuario busca.  -->
 	 <script>
   $(function() {
     var availableTags = [{% for puc in cuenta %}"{{puc}}",{% endfor %}""];
     $( "#tags" ).autocomplete({
       source: availableTags
     });
+    $( "#tags2" ).autocomplete({
+      source: availableTags
+    });
+    $( "#tags3" ).autocomplete({
+      source: availableTags
+    });
   });
+  </script>
+  <!--Esta funcion se utiliza para cargar las transacciones mediante ajax. Tambien se utiliza en el caso de que el usuario haya ingresado valores 
+  	para buscar. entonces hace la peticion y adicionalmente filtra los resultados por los paramentros concebios  -->
+  <script>
+  	function cargar(valor2,valor3) {
+  		var pagina="{{ transacciones.number }}"
+  		var data={'num2':valor2,'num3':valor3,'page':pagina};
+  		var url="{% url 'contabilidad' %}";
+  		var type='get';
+  		llamarAjax(data,url,type);
+  		
+  	}
+  	function llamarAjax(data,url,type){
+  		//Se llama la funcion mediante jquery
+  		$.ajax({
+  			data: data,//Los datos que se le envian
+    		url: url,//la url destino, definida en urls de Django
+    		type: type,//el tipo de peticion si es GET o POST
+    		success: function (data){//y la funcion que hace cuando la peticion es exitosa
+    			if (data.length > 0){//Si retorno algo 
+        llenarTabla(data);//Llena la tabla con los datos retornados
+      } else {
+		        $("#tabla").find('tr').each(function(index){ //Deja la tabla vacia y adicionalmente se avisa al usuario de la carencia de resultados
+		          $(this).addClass("warning");
+		          if(index == 0){
+		            $(this).find('td').each(function (index2) {
+		              if(index2 == 1){
+		                $(this).css("cursor","default");
+		                $(this).html("<div class='alert-warning'><strong>No hay Resultados</strong></div>");
+		              } else {
+		                $(this).attr("id","");
+		                $(this).text("");
+		              }
+		            });
+		          } else {
+		            $(this).css("display","none");
+		          }
+		        });
+		      }
+    		}
+  		});
+  	}
+	
+	//Esta funcion se encarga de llenar la tabla con los datos
+	function llenarTabla (data) {
+		
+  if(data.mensaje == null){ //Si todo salio bien
+    $("#listaTrans").css("display","table"); //muestra la tabla
+    $("#tabla").find('tr').each(function(index){ //busca en esa tabla los tr
+      $(this).removeClass("warning");
+      if(index < data.length){
+        $(this).css("display","table-row");
+        $(this).attr("id",data[index].pk);
+        $(this).find('td').each(function(index2){ //Busca cada celda
+          $(this).css("cursor","pointer");
+          switch(index2){ //Procede al llenado de los datos que vienen codificados en json
+            case 0:
+              $(this).attr("id",data[index].pk);
+              $(this).text(data[index].pk);
+              break;
+            case 1:
+              $(this).attr("id",data[index].fields.numero_cuenta);
+              $(this).text(data[index].fields.numero_cuenta);
+              break;
+            case 2:
+              $(this).attr("id",data[index].fields.fecha);
+              $(this).text(data[index].fields.fecha);
+              break;
+            case 3:
+              $(this).attr("id",data[index].fields.concepto);
+              $(this).text(data[index].fields.concepto);
+              break;
+            case 4:
+            	if(data[index].fields.tipo == '0'){
+            		$(this).attr("id",data[index].fields.valor);
+		            $(this).text(data[index].fields.valor);
+		            break;	
+            	}else{
+            		$(this).attr("id","");
+		            $(this).text("");
+		            break;	
+            	}
+            case 5:
+              if(data[index].fields.tipo == '1'){
+            		$(this).attr("id",data[index].fields.valor);
+		            $(this).text(data[index].fields.valor);
+		            break;	
+            	}else{
+            		$(this).attr("id","");
+		            $(this).text("");
+		            break;	
+            	}
+          }
+        });
+      } else {
+        $(this).css("display","none"); //En dado caso de encontrar pocos resultados  que son inferiores a la cantidad que maneja el paginador(10) oculta las otras filas
+        $(this).find('td').each(function(index2){
+          $(this).attr("id","");
+          $(this).text("");
+        });
+      }
+    });
+  }else{
+    $("#listaTrans").css("display","none");
+    $("#mensaje").css("display","inline-block");
+    $("#mensaje").html("<h1><p>"+data.mensaje+"</p></h1>");
+  }
+}
+
+	
+	function buscar(){
+		$("#colBuscar").css("display","table-row");
+		$("#colEnunciados").css("display","none");
+		$("#agregar").css("display","none");
+		$("#cancelarBusqueda").css("display","block");
+		$("#buscar").css("display","none");
+	}
+	
+	function cancelbuscar(){
+		$("#colBuscar").css("display","none");
+		$("#colEnunciados").css("display","table-row");
+		$("#agregar").css("display","block");
+		$("#cancelarBusqueda").css("display","none");
+		$("#buscar").css("display","block");
+		$('#buscarCodigo').val('');
+		$('#buscarFecha').val('');
+		cargar(buscarCuenta.value,buscarFecha.value);
+	}
   </script>
 {% endblock%}
 {% block contenido %}
+
+
+
+{% if mensaje %}
+<div class="alert alert-danger">
+<button type="button" class="close" data-dismiss="alert">&times;</button>
+{{mensaje}}</div>
+<script>
+	$(function() {
+				 $("#opcionesLista").css("display","none");
+                $("#opcionesAgregar").css("display","inline-block");
+                $("#listaTrans").css("display","none");
+                $("#divPaginador").css("display","none");
+                $("#panelAgregar").css("display","block");
+                $("#tags").val("{{cuenta1}}");
+                $("#concepto1").val("{{concepto}}");
+                $("#valor1").val("{{valor}}");
+                
+                $("#tags2").val("{{cuenta2}}");
+                $("#concepto2").val("{{concepto2}}");
+                $("#valor2").val("{{valor2}}");
+                // var uno="";
+			    // var dos="";
+			    // cargar(uno,dos);
+	});
+</script>
+
+<script>
+  window.history.pushState(null, "Agregar", "{% url 'contabilidad' %}");
+</script>
+{% else %}
+<script type="text/javascript">
+$(document).ready(function  () {
+    var uno="";
+    var dos="";
+    cargar(uno,dos);
+});
+</script>
+
+{% endif%}
+
 <h1>Transacciones</h1>
+
 <div id="opcionesLista" class="btn-group">
         <label  id="agregar" class="btn btn-success btn-sm">
                 <i class="fa fa-plus"></i> Nueva Transaccion
         </label>
-        <!-- <label  id="buscar" href="" class="btn btn-success btn-sm">
-                <i class="fa fa-search"></i> Buscar
-        </label> -->
+        <label  id="buscar" href="" onclick="javascript: buscar();" class="btn btn-success btn-sm">
+                <i class="fa fa-search"  ></i> Buscar
+        </label> 
+        <label  id="cancelarBusqueda" style="display: none"  onclick="javascript: cancelbuscar();" href=""  class="btn btn-success btn-sm">
+                <i class="fa fa-times"></i> Atrás
+        </label> 
 </div>
 
 <div id="opcionesAgregar" class="btn-group">
-        <label  id="cancelar" href="" class="btn btn-success btn-sm">
-                <i class="fa fa-times"></i> Cancelar
+        <label  id="cancelar" onclick="javascript: cargar('','');"  class="btn btn-success btn-sm">
+                <i class="fa fa-times"></i> Atrás
         </label>
 </div>
 
@@ -45,76 +235,119 @@
 <div id="panelAgregar">
 	<br />
 	
-	
-	<form action="/contabilidad/agregar/" method="post" >
+	<!--Este es el formulario de las transacciones. Para que sea un movimiento valido tiene que tener al menos
+		dos cuentas afectadas y estas dos tienen que balancearse entre si.  -->
+	<form action="{% url 'crearTransaccion' %}" method="post" >
 	{% csrf_token %}
+	<h2>Cuenta 1</h2>
 	<div class="row">
 		<div class="form-group col-lg-6">
-                            <label for="nombre">Cuenta</label>
-                            <input  type="text" min="6" max="6"  id="tags" class="form-control" name="cuenta"  required="" placeholder="Cuenta" autocomplete="off" >
-                        </div>
-                        <div class="form-group col-lg-6">
-                            <label for="documento">Concepto</label>
-                            <input type="text" class="form-control" name="concepto" required="" placeholder="Concepto">
-                        </div>
-	  </div>
-	  
-	  <div class="row">
-		<div class="form-group col-lg-6">
-                            <label for="nombre">Fecha</label>
-                            <input type="date" class="form-control" name="fecha" required="" id="fecha">
-                        </div>
-                        <div class="form-group col-lg-6">
-                            <label for="documento">Valor</label>
-                            <input type="number" class="form-control" name="valor" required="" placeholder="Valor">
-                        </div>
-	  </div>
-	  
-	  <div class="row">
-		<div class="form-group col-lg-6">
-                   <input type="submit" class="btn-primary" value="Almacenar Transaccion" />
+                 <label for="nombre">Cuenta</label>
+                <input  type="text" min="6" max="6"  id="tags" class="form-control" name="cuenta"  required="" placeholder="Cuenta" autocomplete="off" >
+         </div>
+         <div class="form-group col-lg-6">
+                <label for="documento">Concepto</label>
+                <input type="text" class="form-control" id="concepto1" name="concepto" required="" placeholder="Concepto">
           </div>
+	 </div>
+	  <div class="row">
+		<!-- <div class="form-group col-lg-6">
+                <label for="nombre">Fecha</label>
+                <input type="date" class="form-control" name="fecha" required="" id="fecha">
+        </div> -->
+        <!--Una cuenta así sea de naturaleza débito, por ejemplo, puede tener un movimiento de naturaleza crédito, 
+	  		afectando el débito de manera negativa  -->
+		<div class="form-group col-lg-6">
+					<label>Naturaleza</label>
+                   <div class="input" align="center">
+                    <input type="radio" checked name="optionsRadios" value="0" />
+                    <span>Debito    </span>
+                    <input type="radio" name="optionsRadios" value="1" />
+                    <span>Credito</span>
+            		</div>
+          </div>
+        <div class="form-group col-lg-6">
+                 <label for="documento">Valor</label>
+                 <input type="number" id="valor1" class="form-control" name="valor" required="" placeholder="Valor">
+         </div>
 	  </div>
 	  
+	  
+	 
+	  
+	  <!--  Enviar en formulario -->
+	  <div align="center">
+             <input type="submit" class="btn btn-success btn-sm" value="Almacenar Movimiento" />
+      </div>
 	  </form>
 </div>
+
 <table id="listaTrans" class="table table-striped">
-	<tr>
-		<th style="width: 100px">Id
-		<input type="text" class="input-sm" style="width: 100%" placeholder="Buscar"/>	
+	<tr id="colEnunciados">
+		<th >Id
 		</th>
 		<th>Cuenta
-		<input type="text" class="input-sm" style="width: 100%" placeholder="Buscar"/>
 		</th>
 		<th>Fecha
-		<input type="date" class="input-sm" style="width: 100%" placeholder="Buscar"/>	
 		</th>
 		<th>Concepto</th>
 		<th>Debito</th>
 		<th>Credito</th>
 	</tr>
+	<tr id="colBuscar" style="display: none">
+		  <td id=""></td>
+          <td id="">
+          	<input type="text" id="buscarCuenta" onkeyup="javascript: cargar(buscarCuenta.value,buscarFecha.value);"  style="width: 100%"  class="input-sm" placeholder="Buscar Cuenta"/>
+          </td>
+          <td id="">
+          	<input type="text" id="buscarFecha"  onchange="javascript: cargar(buscarCuenta.value,buscarFecha.value);"  style="width: 100%" class="input-sm" placeholder="Buscar"/>
+          </td>
+          <td id=""></td>
+          <td id=""></td>
+          <td id=""></td>
+	</tr>
+	<tbody class="tabla" id="tabla" value="{{cont}}">
 	{% for transaccion in transacciones %}
-		<tr>
-			<td>{{transaccion.id}}</td>
-			<td>{{transaccion.numero_cuenta}}</td>
-			<td>{{transaccion.fecha}}</td>
-			<td>{{transaccion.concepto}}</td>
-			{% if transaccion.numero_cuenta.naturaleza == '0' %}
-			<td>{{transaccion.valor}}</td>
-			<td></td>
-			{% else %}
-			<td></td>
-			<td>{{transaccion.valor}}</td>
-			{% endif %}
-		</tr>
+		<tr class="datoLista " style="cursor: pointer;" >
+			<!-- Se dejan libres pora ser llenados posteriormente con una petición ajax -->
+          <td id="" style="width: 100px"></td>
+          <td id=""></td>
+          <td id=""></td>
+          <td id=""></td>
+          <td id=""></td>
+          <td id=""></td>
+        </tr>
 	{% endfor %}
-	
+	</tbody>
 </table>
+
+     <!-- Este es el paginador de la tabla mediante el cual nos movemos de de 10 en 10 registros -->
+<div  class="row" id="divPaginador">
+<div align="center">
+  <ul class="pagination" value="{{pag}}" id="paginacion">
+    	<li class="paginacionLi" value="-1">
+        {% if transacciones.has_previous %}
+            <a href="?page={{ transacciones.previous_page_number }}">&laquo;</a>
+        {% endif %}
+		</li>
+		<li class="paginacionLi">
+			<a>Pagina {{ transacciones.number }} de {{ transacciones.paginator.num_pages }}</a>
+		</li>
+		 <li class="paginacionLi" value="-2">
+        {% if transacciones.has_next %}
+           <a href="?page={{ transacciones.next_page_number }}">&raquo;</a>
+        {% endif %}
+        </li>
+  </ul>
+ </div>	
+</div>
+
 <script type="text/javascript">
         $("#agregar").click(function() {
                 $("#opcionesLista").css("display","none");
                 $("#opcionesAgregar").css("display","inline-block");
                 $("#listaTrans").css("display","none");
+                $("#divPaginador").css("display","none");
                 $("#panelAgregar").css("display","block");
                 // $("#buscar").removeClass("active"); 
                 // $("#panelBuscar").css("display","none");
@@ -122,35 +355,10 @@
 
         $("#cancelar").click(function() {
                 $("#opcionesLista").css("display","inline-block");
+                $("#divPaginador").css("display","block");
                 $("#opcionesAgregar").css("display","none");
                 $("#listaTrans").css("display","table");
                 $("#panelAgregar").css("display","none");
         });
-
-        // $("#buscar").click(function() {
-                // if($(this).hasClass("active")) {
-                        // $(this).removeClass("active");                        
-                        // $("#panelBuscar").css("display","none");
-                // }else{
-                        // $(this).addClass("active");
-                        // $("#panelBuscar").css("display","block");
-                // }                
-        // });
-
-        // $("#seleccionarTodo").click(function() {
-                // if($(this).hasClass("active")) {
-                        // $(this).removeClass("active");
-                        // $('input[type=checkbox]').attr('checked', false);
-                // }else{
-                        // $(this).addClass("active");
-                        // $('input[type=checkbox]').attr('checked', true);
-                // }                
-        // });
-// 
-        // $("#listaBtn").click(function() {
-                // $(this).addClass("active");
-                // $("#agregar").removeClass("active");
-                // $("#lista").css("display","table");
-        // });
 </script>
 {% endblock %}

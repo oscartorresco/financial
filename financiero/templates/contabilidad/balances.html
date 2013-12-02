@@ -1,0 +1,120 @@
+{% extends "rh_base.html" %}
+{% block titulo%} Balances {% endblock %}
+
+{% block contenido %}
+	<!--Se utiliza para el control de errores  -->
+{% if mensaje %}
+<div class="alert alert-danger">
+<button type="button" class="close" data-dismiss="alert">&times;</button>
+{{mensaje}}</div>
+{% endif%}
+
+{% block js %}
+  <!--Este Script se utiliza para darle negrilla al nombre de la clase, grupo y subgrupo
+  	Ademas subraya los totales  -->
+<script type="text/javascript">
+$(document).ready(function  () {
+    $("#tabla").find('tr').each(function(index){
+    	console.log(index);
+    	var aux=0;
+    	var aux2=0;
+    	var aux3=0;
+    	 $(this).find('td').each(function(index2){
+    	 	if(index2==1 & $(this).text().length ==0){
+    	 		aux=1;
+    	 	}
+    	 	if(index2==6 & $(this).text().length !=0){
+    	 		aux3=1;
+    	 	}
+    	 	if(index2==5 & $(this).text()<0){
+    	 		aux2=1;
+    	 	}
+    	 });
+    	 if(aux==1){
+    	 	$(this).css("font-weight","bold");
+    	 }else{
+    	 	$(this).addClass("success");
+    	 }
+    	 
+    	 if(aux3==1){
+    	 	$(this).css("text-decoration","underline");
+    	 }
+    	 
+    	 if(aux2==1){
+    	 	$(this).addClass("danger");
+    	 }
+    });
+});
+</script>
+{% endblock %}
+  <!--Se valida que solo se muestre el mes y anio seleccionado si se realizo la consulta  -->
+<h1>Balance General
+{% if mes %}
+	{{mes}}/{{anio}}
+{% endif %}	
+</h1>
+<form action="{% url 'balanceMes' %}" method="post">
+{% csrf_token %}
+<div class="row">
+	<div class="col-lg-3">
+		<select class="form-control" name="opcion"  >
+			<option value="0">Seleccione un mes:</option>
+			<option value="1">Enero</option>
+			<option value="2">Febrero</option>
+			<option value="3">Marzo</option>
+			<option value="4">Abril</option>
+			<option value="5">Mayo</option>
+			<option value="6">Junio</option>
+			<option value="7">Julio</option>
+			<option value="8">Agosto</option>
+			<option value="9">Septiembre</option>
+			<option value="10">Octubre</option>
+			<option value="11">Noviembre</option>
+			<option value="12">Diciembre</option>
+		</select>
+	</div>
+	<div class="col-lg-3">
+		<!--Por defecto solo se dejan 3 anios, posteriormente se pueden agregar los demas
+			ademas hay que tener en cuenta que las transacciones funcionan con la fecha actual del sistema
+			donde se encuentre alojado  -->
+		<select name="anio" class="form-control" >
+			<option value="0">Seleccione un año:</option>
+			<option value="2012">2012</option>
+			<option value="2013">2013</option>
+			<option value="2014">2014</option>
+		</select>
+	</div>
+	<div class="col-lg-2">
+		<input type="submit" value="Generar Balance" class="btn btn-success btn-sm" />
+	</div>
+</div>
+</form>
+
+<br />
+	<!--Esta tabla contiene el balance. Aparece la fila en color verde cuando el saldo es positivo. De lo contrario el saldo es negativo  -->
+<table id="listaTrans" class="table table-striped">
+	<tr>
+		<th>Cuenta	</th>
+		<th>Anterior Debito</th>
+		<th>Anterior Credito</th>
+		<th>Actual Debito</th>
+		<th>Actual Credito</th>
+		<th>Valor Cuenta</th>
+		<th>Total</th>
+	</tr>
+	<tbody class="tabla" id="tabla" >
+	{% for transaccion in lista%}
+		<tr>
+			{% for tr in transaccion %}
+				<td>{{tr}}</td>
+			{% endfor %}
+		</tr>
+	{% endfor %}
+	<!--En dado caso de que no se encuentren resultados se procede a dar aviso al usuario  -->
+	{% if aviso %}
+		<tr><td>{{aviso}}</td></tr>
+	{% endif %}
+	</tbody>
+</table>
+
+{% endblock %}
