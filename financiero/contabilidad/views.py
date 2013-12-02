@@ -26,9 +26,16 @@ def balanceMes(request):
             context = {'mensaje': msn}
             return render(request,'contabilidad/balances.html',context)
         else:
-            opcion2 = opcion-1
+            #Condicionamos para el caso en que el Balance se realize en enero y los saldos vengan del anio pasado
+            
+            anio2=anio
+            if opcion==1:#Si es Enero
+                anio2=anio2-1 #Para saldos anteriores utilize el anio anterior
+                opcion2=12
+            else:
+                opcion2 = opcion-1
             cursor = connection.cursor()
-            cursor.execute('(SELECT t.numero_cuenta_id,c.nombre, SUM(t.valor) valor, MONTH(t.fecha) fecha, t.tipo FROM financiero.contabilidad_transaccion t, financiero.contabilidad_puc c WHERE MONTH(fecha)='+str(opcion)+' and YEAR(fecha)='+str(anio)+' AND t.numero_cuenta_id=c.codigo GROUP BY numero_cuenta_id,tipo)UNION(SELECT t.numero_cuenta_id,c.nombre, SUM(t.valor) valor, MONTH(t.fecha) fecha, t.tipo FROM financiero.contabilidad_transaccion t, financiero.contabilidad_puc c WHERE MONTH(fecha)='+str(opcion2)+' and YEAR(fecha)='+str(anio)+' AND t.numero_cuenta_id=c.codigo GROUP BY numero_cuenta_id,tipo)ORDER BY nombre, fecha')
+            cursor.execute('(SELECT t.numero_cuenta_id,c.nombre, SUM(t.valor) valor, MONTH(t.fecha) fecha, t.tipo FROM financiero.contabilidad_transaccion t, financiero.contabilidad_puc c WHERE MONTH(fecha)='+str(opcion)+' and YEAR(fecha)='+str(anio)+' AND t.numero_cuenta_id=c.codigo GROUP BY numero_cuenta_id,tipo)UNION(SELECT t.numero_cuenta_id,c.nombre, SUM(t.valor) valor, MONTH(t.fecha) fecha, t.tipo FROM financiero.contabilidad_transaccion t, financiero.contabilidad_puc c WHERE MONTH(fecha)<='+str(opcion2)+' and YEAR(fecha)='+str(anio2)+' AND t.numero_cuenta_id=c.codigo GROUP BY numero_cuenta_id,tipo)ORDER BY nombre, fecha')
             row = cursor.fetchall()
             print '---------------------------------------------->'+str(len(row))
             
@@ -61,19 +68,21 @@ def balanceMes(request):
                         #Validamos que Las cuentas pertenezcan a las mismas clasificaciones
                         if auxiliar == row[i][0]:
                             if row[i][4]=='0': #Debito
-                                if row[i][3]==opcion2:#Anterior
-                                    anteriorDebito=row[i][2]
-                                else:#Actual
+                                if row[i][3]==opcion:#Actual
                                     actualDebito=row[i][2]
+                                else:#Anterior
+                                    anteriorDebito=row[i][2]
                             else:#Credito
-                                if row[i][3]==opcion2:#Anterior
-                                    anteriorCredito=row[i][2]
-                                else:#Actual
+                                if row[i][3]==opcion:#Actual
                                     actualCredito=row[i][2]
+                                else:#Anterior
+                                    anteriorCredito=row[i][2]
                             auxiliar=row[i][0]
                             i=i+1
                             if i==(rango):
                                 total=(anteriorDebito+actualDebito)-(anteriorCredito+actualCredito)
+                                if PUC.objects.get(pk=str(row[i-1][0])[0:1]).naturaleza == '1':
+                                    total=total*-1
                                 totalCuentas+=total
                                 fila=[str(row[i-1][0])+' - '+ row[i-1][1],anteriorDebito,anteriorCredito,actualDebito,actualCredito,total,'']
                                 lista1.append(fila) 
@@ -82,6 +91,8 @@ def balanceMes(request):
                                 lista1.append(fila)
                         else:
                             total=(anteriorDebito+actualDebito)-(anteriorCredito+actualCredito)
+                            if PUC.objects.get(pk=str(row[i-1][0])[0:1]).naturaleza == '1':
+                                total=total*-1
                             fila=[str(row[i-1][0])+' - '+ row[i-1][1],anteriorDebito,anteriorCredito,actualDebito,actualCredito,total,'']
                             lista1.append(fila) 
                             auxiliar=row[i][0]
